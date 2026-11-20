@@ -1,8 +1,8 @@
 [package]
-name = "code_translator"
+name = "transpiler-infinite"
 version = "0.1.0"
-edition = "2021"
-description = "A small-subset source-to-source code translator with a WebAssembly library."
+edition = "2026"
+description = "Universal code-to-code transpiler for translating between (almot) any programming languages."
 license = "GPL-3.0-only"
 readme = "README.md"
 repository = "https://github.com/tomanyy/transpiler-infinite"
