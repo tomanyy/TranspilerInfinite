@@ -18,6 +18,10 @@ Open `http://localhost:8000` in a browser.
 
 The browser entry point is [src/webTranslator.js](src/webTranslator.js). Translator code is split into [src/languageRegistry.js](src/languageRegistry.js), [src/sourceNormalizers.js](src/sourceNormalizers.js), [src/lexer.js](src/lexer.js), [src/parser.js](src/parser.js), and [src/codeGenerator.js](src/codeGenerator.js). Both language menus use the registry. To add a language, add its configuration there and reuse an existing source family and output syntax style where possible; add a normalizer only when its source syntax differs. No HTML menu edits are needed.
 
+## GitHub Pages
+
+The workflow in `.github/workflows/deployPages.yml` publishes the website whenever changes are pushed to `main`. In the repository's **Settings → Pages**, set the publishing source to **GitHub Actions**. After the first successful workflow run, the site will be available at `https://tomanyy.github.io/transpiler-infinite/`.
+
 ## Rust library
 
 The Rust library is in `src/lib.rs`. Run `cargo check` to check it.
