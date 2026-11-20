@@ -16,7 +16,7 @@ Open `http://localhost:8000` in a browser.
 
 ## Update the translator
 
-Edit [src/webTranslator.js](src/webTranslator.js), which is the browser's source module. Both language menus are generated from its `LANGUAGES` registry. Add one registry entry to reuse an existing syntax family, or add a normalizer when a language uses different syntax. No HTML menu edits are needed.
+The browser entry point is [src/webTranslator.js](src/webTranslator.js). Translator code is split into [src/languageRegistry.js](src/languageRegistry.js), [src/sourceNormalizers.js](src/sourceNormalizers.js), [src/lexer.js](src/lexer.js), [src/parser.js](src/parser.js), and [src/codeGenerator.js](src/codeGenerator.js). Both language menus use the registry. To add a language, add its configuration there and reuse an existing source family and output syntax style where possible; add a normalizer only when its source syntax differs. No HTML menu edits are needed.
 
 ## Rust library
 
