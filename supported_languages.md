@@ -2,6 +2,7 @@
 
 The translator supports these languages as both source and target formats:
 
+- Bash
 - C#
 - C++
 - Dart
@@ -11,7 +12,9 @@ The translator supports these languages as both source and target formats:
 - Kotlin
 - Lua
 - PHP
+- Perl
 - Python
+- R
 - Ruby
 - Rust
 - Scala

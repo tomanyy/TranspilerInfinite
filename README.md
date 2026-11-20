@@ -1,8 +1,6 @@
 # Transpiler Infinite
 
-[![Supported languages](https://img.shields.io/badge/Supported_languages-View-2563eb?style=for-the-badge)](supported_languages.md)
-
-A browser translator for small programs written in Lua, JavaScript, TypeScript, Python, Ruby, Java, C#, Kotlin, Swift, Go, PHP, Rust, Dart, Scala, and C++.
+Universal code-to-code transpiler for translating between (almot) any programming languages.
 
 The translator supports a small shared syntax subset. See [supported_languages.md](supported_languages.md) for the complete list and support notes.
 

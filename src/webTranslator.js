@@ -16,6 +16,9 @@ export const LANGUAGES = [
   { id: "dart", label: "Dart", family: "curly", syntax: "curly", printName: "print", nilValue: "null", declaration: "var", declarationOperator: "=", semicolon: true, variablePrefix: "", andOperator: "&&", orOperator: "||", notEqual: "!=", concat: "+" },
   { id: "scala", label: "Scala", family: "scala", syntax: "curly", printName: "println", nilValue: "null", declaration: "val", declarationOperator: "=", semicolon: false, variablePrefix: "", andOperator: "&&", orOperator: "||", notEqual: "!=", concat: "+" },
   { id: "cpp", label: "C++", family: "cpp", syntax: "cpp", printName: "std::cout", nilValue: "nullptr", declaration: "auto", declarationOperator: "=", semicolon: true, variablePrefix: "", andOperator: "&&", orOperator: "||", notEqual: "!=", concat: "+" },
+  { id: "bash", label: "Bash", family: "bash", syntax: "bash", printName: "echo", nilValue: "", declaration: "", declarationOperator: "=", assignmentOperator: "=", assignmentPrefix: "", semicolon: false, variablePrefix: "$", andOperator: "&&", orOperator: "||", notEqual: "!=", concat: "+" },
+  { id: "perl", label: "Perl", family: "perl", syntax: "curly", printName: "print", nilValue: "undef", declaration: "my", declarationOperator: "=", assignmentOperator: "=", assignmentPrefix: "$", semicolon: true, variablePrefix: "$", andOperator: "&&", orOperator: "||", notEqual: "!=", concat: "." },
+  { id: "r", label: "R", family: "r", syntax: "curly", printName: "print", nilValue: "NA", declaration: "", declarationOperator: "=", assignmentOperator: "<-", assignmentPrefix: "", semicolon: false, variablePrefix: "", andOperator: "&&", orOperator: "||", notEqual: "!=", concat: "+" },
 ]         ;
                                                
                                                
@@ -46,7 +49,7 @@ function tokenize(source        , language          )          {
   while (i < source.length) {
     const c = source[i];
     if (/\s/.test(c)) { i++; continue; }
-    const comment = language === "lua" ? "--" : ["python", "ruby"].includes(language) ? "#" : "//";
+    const comment = language === "lua" ? "--" : ["python", "ruby", "bash", "perl", "r"].includes(language) ? "#" : "//";
     if (source.startsWith(comment, i) || (language === "php" && c === "#")) {
       while (i < source.length && source[i] !== "\n") i++;
       continue;
@@ -202,6 +205,35 @@ function normalizeCpp(source        )         {
   }).join("\n");
 }
 
+function normalizeBash(source) {
+  return source.split(/\r?\n/).map((raw) => {
+    const line = raw.trim();
+    if (!line || line.startsWith("#")) return "";
+    if (line === "done" || line === "fi") return "}";
+    if (line === "else") return "} else {";
+    const alternate = line.match(/^elif\s+(.+?);?\s*then$/);
+    if (alternate) return `} else if (${alternate[1]}) {`;
+    const loop = line.match(/^while\s+(.+?);?\s*do$/);
+    if (loop) return `while (${loop[1]}) {`;
+    const conditional = line.match(/^if\s+(.+?);?\s*then$/);
+    if (conditional) return `if (${conditional[1]}) {`;
+    const output = line.match(/^echo\s+(.+)$/);
+    return output ? `print(${output[1]})` : raw;
+  }).join("\n");
+}
+
+function normalizePerl(source) {
+  return source.split(/\r?\n/).map((raw) => {
+    const line = raw.trim();
+    const output = line.match(/^(?:print|say)\s+(.+?);?$/);
+    return output ? `print(${output[1].replace(/;$/, "")});` : raw;
+  }).join("\n");
+}
+
+function normalizeR(source) {
+  return source.replace(/<-/g, "=");
+}
+
 class Parser {
   tokens         ;
   i        ;
@@ -235,7 +267,7 @@ class Parser {
         return { type: "while", condition, body: this.braceBlock() };
       }
       if (this.accept("if")) return this.jsIf();
-      if (["let", "const", "var", "val", "final", "auto", "int", "double", "float", "long", "boolean", "String", "string", "bool", "char", "decimal", "byte"].some((type) => this.accept(type))) {
+      if (["let", "const", "var", "val", "final", "auto", "my", "int", "double", "float", "long", "boolean", "String", "string", "bool", "char", "decimal", "byte"].some((type) => this.accept(type))) {
         const name = this.name(); this.expect("="); const value = this.expression(); this.accept(";");
         return { type: "let", name, value };
       }
@@ -282,9 +314,9 @@ class Parser {
     if (token.value === "-") return { type: "unary", op: "-", value: this.primary() };
     if (token.value === "(") { const value = this.expression(); this.expect(")"); return value; }
     if (token.type === "name") {
-      if (["true", "True"].includes(token.value)) return { type: "bool", value: true };
-      if (["false", "False"].includes(token.value)) return { type: "bool", value: false };
-      if (["nil", "null", "None"].includes(token.value)) return { type: "nil" };
+      if (["true", "True", "TRUE"].includes(token.value)) return { type: "bool", value: true };
+      if (["false", "False", "FALSE"].includes(token.value)) return { type: "bool", value: false };
+      if (["nil", "null", "None", "NULL", "NA"].includes(token.value)) return { type: "nil" };
       if (this.accept("(")) {
         const args = [];
         if (!this.peek(")")) { do { args.push(this.expression()); } while (this.accept(",")); }
@@ -304,12 +336,15 @@ function renderExpr(expr      , language          )         {
       const { variablePrefix } = languageConfig(language);
       return `${variablePrefix}${expr.value.replace(/^\$/, "")}`;
     }
-    case "bool": return language === "python" ? (expr.value ? "True" : "False") : String(expr.value);
+    case "bool": return language === "python" ? (expr.value ? "True" : "False") : language === "r" ? (expr.value ? "TRUE" : "FALSE") : String(expr.value);
     case "nil": return languageConfig(language).nilValue;
     case "unary": return `-${renderExpr(expr.value, language)}`;
     case "call": {
       const config = languageConfig(language);
       const printNames = ["console.log", "print", "puts", "println", "System.out.println", "Console.WriteLine", "fmt.Println", "println!", "std::cout"];
+      if (config.syntax === "bash" && printNames.includes(expr.name)) {
+        return `${config.printName} ${expr.args.map((arg) => renderExpr(arg, language)).join(" ")}`;
+      }
       if (language === "cpp" && printNames.includes(expr.name)) {
         return `std::cout << ${expr.args.map((arg) => renderExpr(arg, language)).join(" << \" \" << ")} << std::endl`;
       }
@@ -336,27 +371,31 @@ function renderStatements(statements             , language          , depth = 0
   for (const statement of statements) {
     if (statement.type === "while") {
       const condition = renderExpr(statement.condition, language);
-      const header = config.syntax === "python" ? `while ${condition}:` : config.syntax === "lua" ? `while ${condition} do` : config.syntax === "ruby" ? `while ${condition}` : config.syntax === "go" ? `for ${condition} {` : config.syntax === "swift" ? `while ${condition} {` : `while (${condition}) {`;
+      const header = config.syntax === "python" ? `while ${condition}:` : config.syntax === "lua" ? `while ${condition} do` : config.syntax === "ruby" ? `while ${condition}` : config.syntax === "bash" ? `while ${condition}; do` : config.syntax === "go" ? `for ${condition} {` : config.syntax === "swift" ? `while ${condition} {` : `while (${condition}) {`;
       lines.push(pad + header, ...renderStatements(statement.body, language, depth + 1));
       if (["lua", "ruby"].includes(config.syntax)) lines.push(pad + "end");
+      else if (config.syntax === "bash") lines.push(pad + "done");
       else if (config.syntax !== "python") lines.push(pad + "}");
     } else if (statement.type === "if") {
       const condition = renderExpr(statement.condition, language);
-      const header = config.syntax === "python" ? `if ${condition}:` : config.syntax === "lua" ? `if ${condition} then` : config.syntax === "ruby" ? `if ${condition}` : ["swift", "go"].includes(config.syntax) ? `if ${condition} {` : `if (${condition}) {`;
+      const header = config.syntax === "python" ? `if ${condition}:` : config.syntax === "lua" ? `if ${condition} then` : config.syntax === "ruby" ? `if ${condition}` : config.syntax === "bash" ? `if ${condition}; then` : ["swift", "go"].includes(config.syntax) ? `if ${condition} {` : `if (${condition}) {`;
       lines.push(pad + header, ...renderStatements(statement.then, language, depth + 1));
       if (statement.otherwise.length) {
-        lines.push(pad + (config.syntax === "python" ? "else:" : ["lua", "ruby"].includes(config.syntax) ? "else" : "} else {"));
+        lines.push(pad + (config.syntax === "python" ? "else:" : ["lua", "ruby", "bash"].includes(config.syntax) ? "else" : "} else {"));
         lines.push(...renderStatements(statement.otherwise, language, depth + 1));
       }
       if (["lua", "ruby"].includes(config.syntax)) lines.push(pad + "end");
+      else if (config.syntax === "bash") lines.push(pad + "fi");
       else if (config.syntax !== "python") lines.push(pad + "}");
     } else if (statement.type === "let") {
       const name = `${config.variablePrefix}${statement.name.replace(/^\$/, "")}`;
       const suffix = config.semicolon ? ";" : "";
       lines.push(`${pad}${config.declaration ? `${config.declaration} ` : ""}${name} ${config.declarationOperator} ${renderExpr(statement.value, language)}${suffix}`);
     } else if (statement.type === "assign") {
-      const name = `${config.variablePrefix}${statement.name.replace(/^\$/, "")}`;
-      lines.push(`${pad}${name} = ${renderExpr(statement.value, language)}${config.semicolon ? ";" : ""}`);
+      const name = `${config.assignmentPrefix ?? config.variablePrefix}${statement.name.replace(/^\$/, "")}`;
+      const operator = config.assignmentOperator ?? "=";
+      const spacer = config.syntax === "bash" ? "" : " ";
+      lines.push(`${pad}${name}${spacer}${operator}${spacer}${renderExpr(statement.value, language)}${config.semicolon ? ";" : ""}`);
     } else {
       lines.push(`${pad}${renderExpr(statement.value, language)}${config.semicolon ? ";" : ""}`);
     }
@@ -376,6 +415,9 @@ export function translate(source        , from          , to          )         
     : family === "csharp" ? normalizeCSharp(source)
     : family === "kotlin" ? normalizeKotlin(source)
     : family === "cpp" ? normalizeCpp(source)
+    : family === "bash" ? normalizeBash(source)
+    : family === "perl" ? normalizePerl(source)
+    : family === "r" ? normalizeR(source)
     : source;
   const program = new Parser(tokenize(normalized, from), from).program();
   return renderStatements(program, to).join("\n");
