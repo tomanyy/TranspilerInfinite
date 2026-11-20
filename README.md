@@ -1,6 +1,6 @@
 # Transpiler Infinite
 
-A browser-based source-to-source translator for a small shared subset of Lua, JavaScript, TypeScript, Python, Ruby, Java, C#, Kotlin, Swift, Go, PHP, and Rust.
+Universal code-to-code transpiler for translating between (almot) any programming languages.
 
 ## Git
 
