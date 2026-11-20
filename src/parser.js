@@ -3,6 +3,7 @@ export class Parser {
     this.tokens = tokens;
     this.index = 0;
     this.language = language;
+    this.arrayNames = new Set();
   }
 
   peek() {
@@ -35,6 +36,14 @@ export class Parser {
     return token.value;
   }
 
+  rememberArrayTables(value, path) {
+    if (value.type !== "table") return;
+    if (value.fields.every((field) => field.key === null)) this.arrayNames.add(path);
+    for (const field of value.fields) {
+      if (field.key?.type === "string") this.rememberArrayTables(field.value, `${path}.${field.key.value}`);
+    }
+  }
+
   program(stops = []) {
     const body = [];
     while (this.peek() && !stops.includes(this.peek().value)) {
@@ -49,6 +58,13 @@ export class Parser {
   }
 
   luaStatement() {
+    if (this.accept("function")) {
+      const name = this.name();
+      const params = this.parameters();
+      const body = this.program(["end"]);
+      this.expect("end");
+      return { type: "function", name, params, body };
+    }
     if (this.accept("while")) {
       const condition = this.expression();
       this.expect("do");
@@ -57,12 +73,47 @@ export class Parser {
       return { type: "while", condition, body };
     }
     if (this.accept("if")) return this.luaIf();
+    if (this.accept("for")) {
+      const variable = this.name();
+      this.expect("in");
+      const iterator = this.expression();
+      this.expect("do");
+      const body = this.program(["end"]);
+      this.expect("end");
+      return { type: "forIn", variable, iterator, body };
+    }
+    if (this.accept("return")) {
+      const values = [];
+      if (!this.is("end") && !this.is("else") && this.peek()) {
+        do values.push(this.expression()); while (this.accept(","));
+      }
+      return { type: "return", values };
+    }
     if (this.accept("local")) {
+      if (this.accept("function")) {
+        const name = this.name();
+        const params = this.parameters();
+        const body = this.program(["end"]);
+        this.expect("end");
+        return { type: "function", name, params, body, local: true };
+      }
       const name = this.name();
       this.expect("=");
-      return { type: "let", name, value: this.expression() };
+      const value = this.expression();
+      this.rememberArrayTables(value, name);
+      return { type: "let", name, value };
     }
     return this.simpleStatement();
+  }
+
+  parameters() {
+    this.expect("(");
+    const params = [];
+    if (!this.is(")")) {
+      do params.push(this.name()); while (this.accept(","));
+    }
+    this.expect(")");
+    return params;
   }
 
   braceStatement() {
@@ -96,6 +147,9 @@ export class Parser {
       if (this.accept("=")) {
         const value = this.expression();
         this.accept(";");
+        if (this.language === "r" && target.type === "name" && value.type === "call" && value.name === "c") {
+          this.arrayNames.add(target.value);
+        }
         if (target.type === "name") return { type: "assign", name: target.value, value };
         return { type: "set", target, value };
       }
@@ -168,6 +222,13 @@ export class Parser {
     if (token.value === "[") return this.postfix(this.collection("]", false));
     if (token.value === "{") return this.postfix(this.collection("}", true));
 
+    if (token.value === "function") {
+      const params = this.parameters();
+      const body = this.program(["end"]);
+      this.expect("end");
+      return { type: "functionExpression", params, body };
+    }
+
     if (token.type === "name") {
       if (["true", "True", "TRUE"].includes(token.value)) return this.postfix({ type: "bool", value: true });
       if (["false", "False", "FALSE"].includes(token.value)) return this.postfix({ type: "bool", value: false });
@@ -178,6 +239,7 @@ export class Parser {
           do args.push(this.expression()); while (this.accept(","));
         }
         this.expect(")");
+        if (token.value === "table.insert" && args[0]?.type === "name") this.arrayNames.add(args[0].value);
         return this.postfix({ type: "call", name: token.value, args });
       }
       return this.postfix({ type: "name", value: token.value });
@@ -190,7 +252,13 @@ export class Parser {
     while (this.accept("[")) {
       const index = this.expression();
       this.expect("]");
-      expression = { type: "index", object: expression, index, luaIndex: this.language === "lua" };
+      const isArray = expression.type === "name" && this.arrayNames.has(expression.value);
+      expression = {
+        type: "index",
+        object: expression,
+        index,
+        oneBasedIndex: ["lua", "r"].includes(this.language) && isArray,
+      };
     }
     return expression;
   }

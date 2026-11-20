@@ -82,6 +82,7 @@ export function normalizeGo(source) {
 
 export function normalizeRust(source) {
   return source
+    .replace(/\b(println|print)!\s*\(\s*"\{\}"\s*,\s*/g, "$1(")
     .replace(/\bprintln!\s*\(/g, "println(")
     .replace(/\bprint!\s*\(/g, "print(")
     .split(/\r?\n/).map((raw) => {

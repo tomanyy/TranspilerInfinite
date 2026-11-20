@@ -22,32 +22,76 @@ function renderExpression(expression, language, sourceLanguage) {
       const object = renderExpression(expression.object, language, sourceLanguage);
       const index = renderExpression(expression.index, language, sourceLanguage);
       const usesZeroBasedArrays = !["lua", "r"].includes(language);
-      const key = expression.luaIndex && usesZeroBasedArrays && expression.index.type !== "string"
-        ? `(${index} - 1)`
-        : index;
+      const convertsOneBasedIndex = expression.oneBasedIndex && usesZeroBasedArrays && expression.index.type !== "string";
+      const key = convertsOneBasedIndex && expression.index.type === "number"
+        ? String(Number(expression.index.value) - 1)
+        : convertsOneBasedIndex
+          ? `(${index} - 1)`
+          : index;
       return `${object}[${key}]`;
     }
     case "table":
       return renderTable(expression, language, sourceLanguage);
+    case "functionExpression": {
+      const params = expression.params.join(", ");
+      const body = renderStatements(expression.body, language, sourceLanguage, 1).join("\n");
+      if (language === "lua") return `function(${params})\n${body}\nend`;
+      if (language === "python") return `lambda ${params}: None`;
+      if (language === "ruby") return `lambda do |${params}|\n${body}\nend`;
+      return `function(${params}) {\n${body}\n}`;
+    }
     case "call": {
       const config = languageConfig(language);
+      const args = expression.args.map((arg) => renderExpression(arg, language, sourceLanguage));
+      if (sourceLanguage === "r" && expression.name === "c") {
+        if (language === "lua") return `{${args.join(", ")}}`;
+        if (["js", "typescript", "python", "swift", "dart", "php"].includes(language)) return `[${args.join(", ")}]`;
+        if (language === "java") return `new Object[] { ${args.join(", ")} }`;
+        if (language === "csharp") return `new object[] { ${args.join(", ")} }`;
+        if (language === "kotlin") return `listOf(${args.join(", ")})`;
+        if (language === "go") return `[]any{${args.join(", ")}}`;
+        if (language === "rust") return `vec![${args.join(", ")}]`;
+        if (language === "scala") return `List(${args.join(", ")})`;
+        if (language === "cpp") return `std::vector{${args.join(", ")}}`;
+        if (language === "bash") return `(${args.join(" ")})`;
+        if (language === "perl") return `[${args.join(", ")}]`;
+      }
+      if (expression.name === "pairs" && args.length === 1) {
+        if (language === "js" || language === "typescript" || language === "dart") return `Object.keys(${args[0]})`;
+        if (language === "python") return `${args[0]}.keys()`;
+        if (language === "ruby") return `${args[0]}.keys`;
+        if (language === "php") return `array_keys(${args[0]})`;
+        if (language === "r") return `names(${args[0]})`;
+      }
+      if (expression.name === "table.insert" && args.length >= 2) {
+        if (["js", "typescript", "dart"].includes(language)) return `${args[0]}.push(${args.slice(1).join(", ")})`;
+        if (language === "python") return `${args[0]}.append(${args[1]})`;
+        if (language === "ruby") return `${args[0]} << ${args[1]}`;
+        if (language === "php") return `array_push(${args[0]}, ${args.slice(1).join(", ")})`;
+      }
+      if (expression.name === "table.sort" && args.length >= 1) {
+        if (["js", "typescript", "dart"].includes(language)) return `${args[0]}.sort(${args.slice(1).join(", ")})`;
+        if (language === "python") return `${args[0]}.sort()`;
+        if (language === "ruby") return `${args[0]}.sort!`;
+      }
       const printFunctions = [
         "console.log", "print", "puts", "println", "System.out.println",
         "Console.WriteLine", "fmt.Println", "println!", "std::cout",
       ];
 
       if (config.syntax === "bash" && printFunctions.includes(expression.name)) {
-        const args = expression.args.map((arg) => renderExpression(arg, language, sourceLanguage));
         return `${config.printName} ${args.join(" ")}`;
       }
       if (language === "cpp" && printFunctions.includes(expression.name)) {
-        const args = expression.args.map((arg) => renderExpression(arg, language, sourceLanguage));
         return `std::cout << ${args.join(" << \" \" << ")} << std::endl`;
+      }
+      if (language === "rust" && printFunctions.includes(expression.name)) {
+        const format = args.map(() => "{}").join(" ");
+        return `println!("${format}"${args.length ? `, ${args.join(", ")}` : ""})`;
       }
 
       const name = printFunctions.includes(expression.name) ? config.printName : expression.name;
-      const args = expression.args.map((arg) => renderExpression(arg, language, sourceLanguage)).join(", ");
-      return `${name}(${args})`;
+      return `${name}(${args.join(", ")})`;
     }
     case "binary": {
       const config = languageConfig(language);
@@ -125,12 +169,70 @@ function renderTable(table, language, sourceLanguage) {
   return `{${entries.join(", ")}}`;
 }
 
-function renderStatements(statements, language, sourceLanguage, depth = 0) {
+function collectStatementNames(statements, type) {
+  const names = new Set();
+  for (const statement of statements) {
+    if (statement.type === type && statement.name) names.add(statement.name);
+    if (statement.body) {
+      for (const name of collectStatementNames(statement.body, type)) names.add(name);
+    }
+    for (const branch of [statement.then, statement.otherwise]) {
+      if (Array.isArray(branch)) {
+        for (const name of collectStatementNames(branch, type)) names.add(name);
+      }
+    }
+  }
+  return names;
+}
+
+function renderStatements(statements, language, sourceLanguage, depth = 0, declaredVariables = new Set()) {
   const config = languageConfig(language);
   const indentation = "    ".repeat(depth);
   const lines = [];
 
   for (const statement of statements) {
+    if (statement.type === "function") {
+      const params = statement.params.join(", ");
+      let header;
+      if (config.syntax === "lua") header = `function ${statement.name}(${params})`;
+      else if (config.syntax === "python") header = `def ${statement.name}(${params}):`;
+      else if (config.syntax === "ruby") header = `def ${statement.name}(${params})`;
+      else if (config.syntax === "go") header = `func ${statement.name}(${params}) {`;
+      else if (config.syntax === "bash") header = `${statement.name}() {`;
+      else header = `function ${statement.name}(${params}) {`;
+      lines.push(indentation + header, ...renderStatements(statement.body, language, sourceLanguage, depth + 1, declaredVariables));
+      if (["lua", "ruby"].includes(config.syntax)) lines.push(indentation + "end");
+      else if (config.syntax === "python") {}
+      else if (config.syntax === "bash") lines.push(indentation + "}");
+      else lines.push(indentation + "}");
+      continue;
+    }
+
+    if (statement.type === "forIn") {
+      const iterator = renderExpression(statement.iterator, language, sourceLanguage);
+      const variable = `${config.variablePrefix}${statement.variable}`;
+      let header;
+      if (config.syntax === "lua") header = `for ${variable} in ${iterator} do`;
+      else if (config.syntax === "python") header = `for ${variable} in ${iterator}:`;
+      else if (config.syntax === "ruby") header = `for ${variable} in ${iterator} do`;
+      else if (config.syntax === "bash") header = `for ${variable} in ${iterator}; do`;
+      else header = `for (const ${variable} of ${iterator}) {`;
+      lines.push(indentation + header, ...renderStatements(statement.body, language, sourceLanguage, depth + 1, declaredVariables));
+      if (["lua", "ruby"].includes(config.syntax)) lines.push(indentation + "end");
+      else if (config.syntax === "bash") lines.push(indentation + "done");
+      else if (config.syntax !== "python") lines.push(indentation + "}");
+      continue;
+    }
+
+    if (statement.type === "return") {
+      const values = statement.values.map((value) => renderExpression(value, language, sourceLanguage));
+      let result = values.join(", ");
+      if (values.length > 1 && ["js", "typescript", "dart"].includes(language)) result = `[${result}]`;
+      if (values.length > 1 && language === "python") result = `(${result})`;
+      lines.push(`${indentation}return${result ? ` ${result}` : ""}${config.semicolon ? ";" : ""}`);
+      continue;
+    }
+
     if (statement.type === "while") {
       const condition = renderExpression(statement.condition, language, sourceLanguage);
       let header;
@@ -159,14 +261,14 @@ function renderStatements(statements, language, sourceLanguage, depth = 0) {
       else if (["swift", "go"].includes(config.syntax)) header = `if ${condition} {`;
       else header = `if (${condition}) {`;
 
-      lines.push(indentation + header, ...renderStatements(statement.then, language, sourceLanguage, depth + 1));
+      lines.push(indentation + header, ...renderStatements(statement.then, language, sourceLanguage, depth + 1, declaredVariables));
       if (statement.otherwise.length) {
         const elseLine = config.syntax === "python"
           ? "else:"
           : ["lua", "ruby", "bash"].includes(config.syntax)
             ? "else"
             : "} else {";
-        lines.push(indentation + elseLine, ...renderStatements(statement.otherwise, language, sourceLanguage, depth + 1));
+        lines.push(indentation + elseLine, ...renderStatements(statement.otherwise, language, sourceLanguage, depth + 1, declaredVariables));
       }
 
       if (["lua", "ruby"].includes(config.syntax)) lines.push(indentation + "end");
@@ -177,10 +279,25 @@ function renderStatements(statements, language, sourceLanguage, depth = 0) {
 
     const suffix = config.semicolon ? ";" : "";
     if (statement.type === "let") {
+      if (config.syntax === "bash") {
+        const value = renderExpression(statement.value, language, sourceLanguage);
+        lines.push(`${indentation}${statement.name}=${value}`);
+        continue;
+      }
       const variable = `${config.variablePrefix}${statement.name.replace(/^\$/, "")}`;
       const declaration = config.declaration ? `${config.declaration} ` : "";
+      if (statement.value.type === "functionExpression" && config.syntax === "python") {
+        lines.push(`${indentation}def ${variable}(${statement.value.params.join(", ")}):`);
+        const assigned = collectStatementNames(statement.value.body, "assign");
+        const declared = collectStatementNames(statement.value.body, "let");
+        const captured = [...assigned].filter((name) => !declared.has(name));
+        if (captured.length) lines.push(`${indentation}    nonlocal ${captured.join(", ")}`);
+        lines.push(...renderStatements(statement.value.body, language, sourceLanguage, depth + 1));
+        continue;
+      }
       const value = renderExpression(statement.value, language, sourceLanguage);
       lines.push(`${indentation}${declaration}${variable} ${config.declarationOperator} ${value}${suffix}`);
+      declaredVariables.add(statement.name.replace(/^\$/, ""));
       continue;
     }
 
@@ -190,6 +307,14 @@ function renderStatements(statements, language, sourceLanguage, depth = 0) {
       const operator = config.assignmentOperator ?? "=";
       const spacing = config.syntax === "bash" ? "" : " ";
       const value = renderExpression(statement.value, language, sourceLanguage);
+      const normalizedName = statement.name.replace(/^\$/, "");
+      if (["rust", "go", "cpp"].includes(language) && !declaredVariables.has(normalizedName)) {
+        const declaration = language === "rust" ? "let mut " : language === "go" ? "" : "auto ";
+        const bindingOperator = language === "go" ? ":=" : "=";
+        lines.push(`${indentation}${declaration}${normalizedName} ${bindingOperator} ${value}${suffix}`);
+        declaredVariables.add(normalizedName);
+        continue;
+      }
       lines.push(`${indentation}${variable}${spacing}${operator}${spacing}${value}${suffix}`);
       continue;
     }

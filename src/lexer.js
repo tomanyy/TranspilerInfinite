@@ -19,6 +19,18 @@ export function tokenize(source, language) {
       : ["python", "ruby", "bash", "perl", "r"].includes(language)
         ? "#"
         : "//";
+    if (language === "lua" && source.startsWith("--[[", index)) {
+      const end = source.indexOf("]]", index + 4);
+      if (end === -1) throw new Error("Unterminated Lua block comment");
+      index = end + 2;
+      continue;
+    }
+    if (source.startsWith("/*", index)) {
+      const end = source.indexOf("*/", index + 2);
+      if (end === -1) throw new Error("Unterminated block comment");
+      index = end + 2;
+      continue;
+    }
     if (source.startsWith(comment, index) || (language === "php" && character === "#")) {
       while (index < source.length && source[index] !== "\n") index += 1;
       continue;
