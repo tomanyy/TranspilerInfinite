@@ -31,10 +31,10 @@
     <table id="translator">
       <tr>
         <td>
-          <select id="source-language" aria-label="Source language"></select>
+          <select id="sourceLanguage" aria-label="Source language"></select>
         </td>
         <td>
-          <select id="target-language" aria-label="Target language"></select>
+          <select id="targetLanguage" aria-label="Target language"></select>
         </td>
       </tr>
       <tr>
@@ -46,11 +46,11 @@
   </main>
 
   <script type="module">
-    import { LANGUAGES, translate } from './src/web-translator.js';
+    import { LANGUAGES, translate } from './src/webTranslator.js';
 
     const source = document.querySelector('#source');
-    const from = document.querySelector('#source-language');
-    const to = document.querySelector('#target-language');
+    const from = document.querySelector('#sourceLanguage');
+    const to = document.querySelector('#targetLanguage');
     const output = document.querySelector('#output');
     const status = document.querySelector('#status');
     for (const language of LANGUAGES) {

@@ -3,6 +3,8 @@
 The translator supports these languages as both source and target formats:
 
 - C#
+- C++
+- Dart
 - Go
 - Java
 - JavaScript
@@ -12,6 +14,7 @@ The translator supports these languages as both source and target formats:
 - Python
 - Ruby
 - Rust
+- Scala
 - Swift
 - TypeScript
 

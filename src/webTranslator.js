@@ -1,38 +1,47 @@
 const operators = ["===", "!==", "==", "!=", "<=", ">=", "&&", "||", "..", "(", ")", "{", "}", ",", ";", "=", "<", ">", "+", "-", "*", "/"];
 
 export const LANGUAGES = [
-  { id: "lua", label: "Lua", family: "lua" },
-  { id: "js", label: "JavaScript", family: "curly" },
-  { id: "typescript", label: "TypeScript", family: "typescript" },
-  { id: "python", label: "Python", family: "python" },
-  { id: "ruby", label: "Ruby", family: "ruby" },
-  { id: "java", label: "Java", family: "curly" },
-  { id: "csharp", label: "C#", family: "csharp" },
-  { id: "kotlin", label: "Kotlin", family: "kotlin" },
-  { id: "swift", label: "Swift", family: "swift" },
-  { id: "go", label: "Go", family: "go" },
-  { id: "php", label: "PHP", family: "php" },
-  { id: "rust", label: "Rust", family: "rust" },
-] as const;
-type Language = typeof LANGUAGES[number]["id"];
-type Token = { type: "string" | "number" | "name" | "op"; value: string };
-type Expr =
-  | { type: "string"; value: string }
-  | { type: "number"; value: string }
-  | { type: "bool"; value: boolean }
-  | { type: "nil" }
-  | { type: "name"; value: string }
-  | { type: "unary"; op: string; value: Expr }
-  | { type: "call"; name: string; args: Expr[] }
-  | { type: "binary"; op: string; left: Expr; right: Expr };
-type Statement =
-  | { type: "while"; condition: Expr; body: Statement[] }
-  | { type: "if"; condition: Expr; then: Statement[]; otherwise: Statement[] }
-  | { type: "let" | "assign"; name: string; value: Expr }
-  | { type: "expr"; value: Expr };
+  { id: "lua", label: "Lua", family: "lua", syntax: "lua", printName: "print", nilValue: "nil", declaration: "local", declarationOperator: "=", semicolon: false, variablePrefix: "", andOperator: "and", orOperator: "or", notEqual: "~=", concat: ".." },
+  { id: "js", label: "JavaScript", family: "curly", syntax: "curly", printName: "console.log", nilValue: "null", declaration: "let", declarationOperator: "=", semicolon: true, variablePrefix: "", andOperator: "&&", orOperator: "||", notEqual: "!=", concat: "+" },
+  { id: "typescript", label: "TypeScript", family: "typescript", syntax: "curly", printName: "console.log", nilValue: "null", declaration: "let", declarationOperator: "=", semicolon: true, variablePrefix: "", andOperator: "&&", orOperator: "||", notEqual: "!=", concat: "+" },
+  { id: "python", label: "Python", family: "python", syntax: "python", printName: "print", nilValue: "None", declaration: "", declarationOperator: "=", semicolon: false, variablePrefix: "", andOperator: "and", orOperator: "or", notEqual: "!=", concat: "+" },
+  { id: "ruby", label: "Ruby", family: "ruby", syntax: "ruby", printName: "puts", nilValue: "nil", declaration: "", declarationOperator: "=", semicolon: false, variablePrefix: "", andOperator: "and", orOperator: "or", notEqual: "!=", concat: "+" },
+  { id: "java", label: "Java", family: "curly", syntax: "curly", printName: "System.out.println", nilValue: "null", declaration: "var", declarationOperator: "=", semicolon: true, variablePrefix: "", andOperator: "&&", orOperator: "||", notEqual: "!=", concat: "+" },
+  { id: "csharp", label: "C#", family: "csharp", syntax: "curly", printName: "Console.WriteLine", nilValue: "null", declaration: "var", declarationOperator: "=", semicolon: true, variablePrefix: "", andOperator: "&&", orOperator: "||", notEqual: "!=", concat: "+" },
+  { id: "kotlin", label: "Kotlin", family: "kotlin", syntax: "curly", printName: "println", nilValue: "null", declaration: "val", declarationOperator: "=", semicolon: false, variablePrefix: "", andOperator: "&&", orOperator: "||", notEqual: "!=", concat: "+" },
+  { id: "swift", label: "Swift", family: "swift", syntax: "swift", printName: "print", nilValue: "nil", declaration: "let", declarationOperator: "=", semicolon: false, variablePrefix: "", andOperator: "&&", orOperator: "||", notEqual: "!=", concat: "+" },
+  { id: "go", label: "Go", family: "go", syntax: "go", printName: "fmt.Println", nilValue: "nil", declaration: "", declarationOperator: ":=", semicolon: false, variablePrefix: "", andOperator: "&&", orOperator: "||", notEqual: "!=", concat: "+" },
+  { id: "php", label: "PHP", family: "php", syntax: "php", printName: "print", nilValue: "null", declaration: "", declarationOperator: "=", semicolon: true, variablePrefix: "$", andOperator: "&&", orOperator: "||", notEqual: "!=", concat: "." },
+  { id: "rust", label: "Rust", family: "rust", syntax: "rust", printName: "println!", nilValue: "None", declaration: "let mut", declarationOperator: "=", semicolon: true, variablePrefix: "", andOperator: "&&", orOperator: "||", notEqual: "!=", concat: "+" },
+  { id: "dart", label: "Dart", family: "curly", syntax: "curly", printName: "print", nilValue: "null", declaration: "var", declarationOperator: "=", semicolon: true, variablePrefix: "", andOperator: "&&", orOperator: "||", notEqual: "!=", concat: "+" },
+  { id: "scala", label: "Scala", family: "scala", syntax: "curly", printName: "println", nilValue: "null", declaration: "val", declarationOperator: "=", semicolon: false, variablePrefix: "", andOperator: "&&", orOperator: "||", notEqual: "!=", concat: "+" },
+  { id: "cpp", label: "C++", family: "cpp", syntax: "cpp", printName: "std::cout", nilValue: "nullptr", declaration: "auto", declarationOperator: "=", semicolon: true, variablePrefix: "", andOperator: "&&", orOperator: "||", notEqual: "!=", concat: "+" },
+]         ;
+                                               
+                                               
+function languageConfig(language          )                 {
+  const config = LANGUAGES.find((entry) => entry.id === language);
+  if (!config) throw new Error(`Unsupported language '${language}'`);
+  return config;
+}
+                                                                          
+           
+                                     
+                                     
+                                    
+                   
+                                   
+                                              
+                                                
+                                                            
+                
+                                                         
+                                                                              
+                                                         
+                                  
 
-function tokenize(source: string, language: Language): Token[] {
-  const tokens: Token[] = [];
+function tokenize(source        , language          )          {
+  const tokens          = [];
   let i = 0;
   while (i < source.length) {
     const c = source[i];
@@ -69,7 +78,7 @@ function tokenize(source: string, language: Language): Token[] {
   return tokens;
 }
 
-function pythonToBraces(source: string): string {
+function pythonToBraces(source        )         {
   const out = [];
   const blocks = [];
   for (const [index, raw] of source.split(/\r?\n/).entries()) {
@@ -98,7 +107,7 @@ function pythonToBraces(source: string): string {
   return out.join("\n");
 }
 
-function rubyToBraces(source: string): string {
+function rubyToBraces(source        )         {
   const out = [];
   const blocks = [];
   for (const raw of source.split(/\r?\n/)) {
@@ -127,7 +136,7 @@ function rubyToBraces(source: string): string {
   return out.join("\n");
 }
 
-function normalizeSwift(source: string): string {
+function normalizeSwift(source        )         {
   return source.split(/\r?\n/).map((raw) => {
     const line = raw.trim();
     const conditional = line.match(/^(if|while)\s+(.+?)\s*\{$/);
@@ -138,7 +147,7 @@ function normalizeSwift(source: string): string {
   }).join("\n");
 }
 
-function normalizeGo(source: string): string {
+function normalizeGo(source        )         {
   return source.split(/\r?\n/).map((raw) => {
     let line = raw.trim();
     const loop = line.match(/^for(?:\s+(.+?))?\s*\{$/);
@@ -151,7 +160,7 @@ function normalizeGo(source: string): string {
   }).join("\n");
 }
 
-function normalizeRust(source: string): string {
+function normalizeRust(source        )         {
   return source
     .replace(/\bprintln!\s*\(/g, "println(")
     .replace(/\bprint!\s*\(/g, "print(")
@@ -164,7 +173,7 @@ function normalizeRust(source: string): string {
     }).join("\n");
 }
 
-function normalizePhp(source: string): string {
+function normalizePhp(source        )         {
   return source.replace(/<\?php|\?>/g, "").split(/\r?\n/).map((raw) => {
     const line = raw.trim();
     const echo = line.match(/^echo\s+(.+);?$/);
@@ -172,36 +181,45 @@ function normalizePhp(source: string): string {
   }).join("\n");
 }
 
-function normalizeTypeScript(source: string): string {
+function normalizeTypeScript(source        )         {
   return source.replace(/\b(let|const|var)\s+([A-Za-z_$][\w$]*)\s*:\s*(?:number|string|boolean|any)\s*=/g, "$1 $2 =");
 }
 
-function normalizeCSharp(source: string): string {
+function normalizeCSharp(source        )         {
   return source.replace(/\b(?:int|double|float|long|bool|string|decimal|byte)\s+([A-Za-z_]\w*)\s*=/g, "var $1 =");
 }
 
-function normalizeKotlin(source: string): string {
+function normalizeKotlin(source        )         {
   return source.replace(/\b(?:val|var)\s+([A-Za-z_]\w*)\s*:\s*[A-Za-z?<>]+\s*=/g, "val $1 =");
 }
 
+function normalizeCpp(source        )         {
+  return source.split(/\r?\n/).map((raw) => {
+    const line = raw.trim();
+    if (/^#include\b/.test(line) || line === "using namespace std;") return "";
+      const output = line.match(/^(?:std::)?cout\s*<<\s*(.+?)(?:\s*<<\s*(?:std::)?endl)?;?$/);
+    return output ? `print(${output[1].replace(/;$/, "")});` : raw;
+  }).join("\n");
+}
+
 class Parser {
-  tokens: Token[];
-  i: number;
-  language: Language;
-  constructor(tokens: Token[], language: Language) { this.tokens = tokens; this.i = 0; this.language = language; }
-  peek(): Token | undefined;
-  peek(value: string): boolean;
-  peek(value?: string): Token | boolean | undefined { const token = this.tokens[this.i]; return value === undefined ? token : token?.value === value; }
-  take(): Token | undefined { return this.tokens[this.i++]; }
-  accept(value: string): boolean { if (this.peek(value)) { this.i++; return true; } return false; }
-  expect(value: string): void { if (!this.accept(value)) throw new Error(`Expected '${value}', found '${(this.tokens[this.i] as Token | undefined)?.value ?? "end of input"}'`); }
-  name(): string { const token = this.take(); if (token?.type !== "name") throw new Error("Expected a variable name"); return token.value; }
-  program(stops: string[] = []): Statement[] {
-    const body: Statement[] = [];
+  tokens         ;
+  i        ;
+  language          ;
+  constructor(tokens         , language          ) { this.tokens = tokens; this.i = 0; this.language = language; }
+                            
+                               
+  peek(value         )                              { const token = this.tokens[this.i]; return value === undefined ? token : token?.value === value; }
+  take()                    { return this.tokens[this.i++]; }
+  accept(value        )          { if (this.peek(value)) { this.i++; return true; } return false; }
+  expect(value        )       { if (!this.accept(value)) throw new Error(`Expected '${value}', found '${(this.tokens[this.i]                     )?.value ?? "end of input"}'`); }
+  name()         { const token = this.take(); if (token?.type !== "name") throw new Error("Expected a variable name"); return token.value; }
+  program(stops           = [])              {
+    const body              = [];
     while (this.peek() && !stops.includes(this.peek().value)) body.push(this.statement());
     return body;
   }
-  statement(): Statement {
+  statement()            {
     const lang = this.language;
     if (lang === "lua") {
       if (this.accept("while")) {
@@ -217,7 +235,7 @@ class Parser {
         return { type: "while", condition, body: this.braceBlock() };
       }
       if (this.accept("if")) return this.jsIf();
-      if (["let", "const", "var", "val", "int", "double", "float", "long", "boolean", "String", "string", "bool", "char", "decimal", "byte"].some((type) => this.accept(type))) {
+      if (["let", "const", "var", "val", "final", "auto", "int", "double", "float", "long", "boolean", "String", "string", "bool", "char", "decimal", "byte"].some((type) => this.accept(type))) {
         const name = this.name(); this.expect("="); const value = this.expression(); this.accept(";");
         return { type: "let", name, value };
       }
@@ -229,15 +247,15 @@ class Parser {
     const value = this.expression(); this.accept(";");
     return { type: "expr", value };
   }
-  braceBlock(): Statement[] { this.expect("{"); const body = this.program(["}"]); this.expect("}"); return body; }
-  jsIf(): Statement {
+  braceBlock()              { this.expect("{"); const body = this.program(["}"]); this.expect("}"); return body; }
+  jsIf()            {
     this.expect("("); const condition = this.expression(); this.expect(")");
     const then = this.braceBlock();
     let otherwise = [];
     if (this.accept("else")) otherwise = this.accept("if") ? [this.jsIf()] : this.braceBlock();
     return { type: "if", condition, then, otherwise };
   }
-  luaIf(): Statement {
+  luaIf()            {
     const condition = this.expression(); this.expect("then");
     const then = this.program(["else", "elseif", "end"]);
     let otherwise = [];
@@ -246,7 +264,7 @@ class Parser {
     else this.expect("end");
     return { type: "if", condition, then, otherwise };
   }
-  expression(min: number = 0): Expr {
+  expression(min         = 0)       {
     let left = this.primary();
     const precedence = { or: 1, "||": 1, and: 2, "&&": 2, "==": 3, "===": 3, "~=": 3, "!=": 3, "!==": 3, "<": 3, "<=": 3, ">": 3, ">=": 3, "..": 4, "+": 5, "-": 5, "*": 6, "/": 6 };
     while (this.peek() && (precedence[this.peek().value] ?? -1) >= min) {
@@ -256,7 +274,7 @@ class Parser {
     }
     return left;
   }
-  primary(): Expr {
+  primary()       {
     const token = this.take();
     if (!token) throw new Error("Expected an expression");
     if (token.type === "string") return { type: "string", value: token.value };
@@ -278,67 +296,75 @@ class Parser {
   }
 }
 
-function renderExpr(expr: Expr, language: Language): string {
+function renderExpr(expr      , language          )         {
   switch (expr.type) {
     case "string": return JSON.stringify(expr.value);
     case "number": return expr.value;
-    case "name": return language === "php" ? (expr.value.startsWith("$") ? expr.value : `$${expr.value}`) : expr.value.replace(/^\$/, "");
+    case "name": {
+      const { variablePrefix } = languageConfig(language);
+      return `${variablePrefix}${expr.value.replace(/^\$/, "")}`;
+    }
     case "bool": return language === "python" ? (expr.value ? "True" : "False") : String(expr.value);
-    case "nil": return ({ lua: "nil", js: "null", typescript: "null", python: "None", ruby: "nil", java: "null", csharp: "null", kotlin: "null", swift: "nil", go: "nil", php: "null", rust: "None" })[language];
+    case "nil": return languageConfig(language).nilValue;
     case "unary": return `-${renderExpr(expr.value, language)}`;
     case "call": {
-      const name = ["console.log", "print", "puts", "println", "System.out.println", "Console.WriteLine", "fmt.Println", "println!"].includes(expr.name)
-        ? ({ lua: "print", js: "console.log", typescript: "console.log", python: "print", ruby: "puts", java: "System.out.println", csharp: "Console.WriteLine", kotlin: "println", swift: "print", go: "fmt.Println", php: "print", rust: "println!" })[language]
-        : expr.name;
+      const config = languageConfig(language);
+      const printNames = ["console.log", "print", "puts", "println", "System.out.println", "Console.WriteLine", "fmt.Println", "println!", "std::cout"];
+      if (language === "cpp" && printNames.includes(expr.name)) {
+        return `std::cout << ${expr.args.map((arg) => renderExpr(arg, language)).join(" << \" \" << ")} << std::endl`;
+      }
+      const name = printNames.includes(expr.name) ? config.printName : expr.name;
       return `${name}(${expr.args.map((arg) => renderExpr(arg, language)).join(", ")})`;
     }
     case "binary": {
       let op = expr.op;
-      if (op === "and" || op === "&&") op = ["python", "lua", "ruby"].includes(language) ? "and" : "&&";
-      if (op === "or" || op === "||") op = ["python", "lua", "ruby"].includes(language) ? "or" : "||";
-      if ((op === "!=" || op === "!==" || op === "~=") && language === "lua") op = "~=";
-      else if (op === "~=" || op === "!==") op = "!=";
+      const config = languageConfig(language);
+      if (op === "and" || op === "&&") op = config.andOperator;
+      if (op === "or" || op === "||") op = config.orOperator;
+      if (op === "!=" || op === "!==" || op === "~=") op = config.notEqual;
       if (op === "===") op = "==";
-      if (op === "..") op = language === "lua" ? ".." : "+";
+      if (op === "..") op = config.concat;
       return `(${renderExpr(expr.left, language)} ${op} ${renderExpr(expr.right, language)})`;
     }
   }
 }
 
-function renderStatements(statements: Statement[], language: Language, depth = 0): string[] {
+function renderStatements(statements             , language          , depth = 0)           {
+  const config = languageConfig(language);
   const pad = "    ".repeat(depth);
   const lines = [];
   for (const statement of statements) {
     if (statement.type === "while") {
-      const header = language === "python" ? `while ${renderExpr(statement.condition, language)}:` : language === "lua" ? `while ${renderExpr(statement.condition, language)} do` : language === "ruby" ? `while ${renderExpr(statement.condition, language)}` : language === "go" ? `for ${renderExpr(statement.condition, language)} {` : language === "swift" ? `while ${renderExpr(statement.condition, language)} {` : `while (${renderExpr(statement.condition, language)}) {`;
+      const condition = renderExpr(statement.condition, language);
+      const header = config.syntax === "python" ? `while ${condition}:` : config.syntax === "lua" ? `while ${condition} do` : config.syntax === "ruby" ? `while ${condition}` : config.syntax === "go" ? `for ${condition} {` : config.syntax === "swift" ? `while ${condition} {` : `while (${condition}) {`;
       lines.push(pad + header, ...renderStatements(statement.body, language, depth + 1));
-      if (language === "lua" || language === "ruby") lines.push(pad + "end");
-      if (["js", "typescript", "java", "csharp", "kotlin", "swift", "go", "php", "rust"].includes(language)) lines.push(pad + "}");
+      if (["lua", "ruby"].includes(config.syntax)) lines.push(pad + "end");
+      else if (config.syntax !== "python") lines.push(pad + "}");
     } else if (statement.type === "if") {
-      const header = language === "python" ? `if ${renderExpr(statement.condition, language)}:` : language === "lua" ? `if ${renderExpr(statement.condition, language)} then` : language === "ruby" ? `if ${renderExpr(statement.condition, language)}` : language === "swift" || language === "go" ? `if ${renderExpr(statement.condition, language)} {` : `if (${renderExpr(statement.condition, language)}) {`;
+      const condition = renderExpr(statement.condition, language);
+      const header = config.syntax === "python" ? `if ${condition}:` : config.syntax === "lua" ? `if ${condition} then` : config.syntax === "ruby" ? `if ${condition}` : ["swift", "go"].includes(config.syntax) ? `if ${condition} {` : `if (${condition}) {`;
       lines.push(pad + header, ...renderStatements(statement.then, language, depth + 1));
       if (statement.otherwise.length) {
-        lines.push(pad + (language === "python" ? "else:" : language === "lua" || language === "ruby" ? "else" : "} else {"));
+        lines.push(pad + (config.syntax === "python" ? "else:" : ["lua", "ruby"].includes(config.syntax) ? "else" : "} else {"));
         lines.push(...renderStatements(statement.otherwise, language, depth + 1));
       }
-      if (language === "lua" || language === "ruby") lines.push(pad + "end");
-      if (["js", "typescript", "java", "csharp", "kotlin", "swift", "go", "php", "rust"].includes(language)) lines.push(pad + "}");
+      if (["lua", "ruby"].includes(config.syntax)) lines.push(pad + "end");
+      else if (config.syntax !== "python") lines.push(pad + "}");
     } else if (statement.type === "let") {
-      const prefix = language === "lua" ? "local " : ["js", "typescript"].includes(language) ? "let " : language === "java" || language === "csharp" ? "var " : language === "kotlin" ? "val " : language === "rust" ? "let mut " : "";
-      const name = language === "php" ? `$${statement.name.replace(/^\$/, "")}` : statement.name.replace(/^\$/, "");
-      const value = renderExpr(statement.value, language);
-      lines.push(`${pad}${prefix}${name}${language === "go" ? " :=" : " ="} ${value}${["js", "typescript", "java", "csharp", "php", "rust"].includes(language) ? ";" : ""}`);
+      const name = `${config.variablePrefix}${statement.name.replace(/^\$/, "")}`;
+      const suffix = config.semicolon ? ";" : "";
+      lines.push(`${pad}${config.declaration ? `${config.declaration} ` : ""}${name} ${config.declarationOperator} ${renderExpr(statement.value, language)}${suffix}`);
     } else if (statement.type === "assign") {
-      const name = language === "php" ? `$${statement.name.replace(/^\$/, "")}` : statement.name.replace(/^\$/, "");
-      lines.push(`${pad}${name} = ${renderExpr(statement.value, language)}${["js", "typescript", "java", "csharp", "php", "rust"].includes(language) ? ";" : ""}`);
+      const name = `${config.variablePrefix}${statement.name.replace(/^\$/, "")}`;
+      lines.push(`${pad}${name} = ${renderExpr(statement.value, language)}${config.semicolon ? ";" : ""}`);
     } else {
-      lines.push(`${pad}${renderExpr(statement.value, language)}${["js", "typescript", "java", "csharp", "php", "rust"].includes(language) ? ";" : ""}`);
+      lines.push(`${pad}${renderExpr(statement.value, language)}${config.semicolon ? ";" : ""}`);
     }
   }
   return lines;
 }
 
-export function translate(source: string, from: Language, to: Language): string {
+export function translate(source        , from          , to          )         {
   const family = LANGUAGES.find((language) => language.id === from)?.family;
   const normalized = family === "python" ? pythonToBraces(source)
     : family === "ruby" ? rubyToBraces(source)
@@ -349,6 +375,7 @@ export function translate(source: string, from: Language, to: Language): string 
     : family === "typescript" ? normalizeTypeScript(source)
     : family === "csharp" ? normalizeCSharp(source)
     : family === "kotlin" ? normalizeKotlin(source)
+    : family === "cpp" ? normalizeCpp(source)
     : source;
   const program = new Parser(tokenize(normalized, from), from).program();
   return renderStatements(program, to).join("\n");

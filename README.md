@@ -1,16 +1,10 @@
 # Transpiler Infinite
 
-Universal code-to-code transpiler for translating between (almot) any programming languages.
+[![Supported languages](https://img.shields.io/badge/Supported_languages-View-2563eb?style=for-the-badge)](supported_languages.md)
 
-## Git
+A browser translator for small programs written in Lua, JavaScript, TypeScript, Python, Ruby, Java, C#, Kotlin, Swift, Go, PHP, Rust, Dart, Scala, and C++.
 
-The provided `.git` path is read-only in this workspace, so repository metadata is stored in the ignored `.git-data` directory. Use the project wrapper for Git commands:
-
-```sh
-scripts/git.sh status
-scripts/git.sh add .
-scripts/git.sh commit -m "Initial commit"
-```
+The translator supports a small shared syntax subset. See [supported_languages.md](supported_languages.md) for the complete list and support notes.
 
 ## Run the website
 
@@ -20,24 +14,22 @@ Serve the project directory over HTTP so the browser can load its JavaScript mod
 python3 -m http.server 8000
 ```
 
-Then open `http://localhost:8000`.
+Open `http://localhost:8000` in a browser.
 
-## Update the translator script
+## Update the translator
 
-The typed translator source is `src/web-translator.ts`. The website loads the generated `src/web-translator.js` file. Regenerate it after editing the TypeScript source:
-
-```sh
-node scripts/build-translator.mjs
-```
-
-The language menus are populated from the `LANGUAGES` registry in `src/web-translator.ts`. Add a language there to make it available in both menus, and add its source normalization or output formatting when its syntax needs special handling.
+Edit [src/webTranslator.js](src/webTranslator.js), which is the browser's source module. Both language menus are generated from its `LANGUAGES` registry. Add one registry entry to reuse an existing syntax family, or add a normalizer when a language uses different syntax. No HTML menu edits are needed.
 
 ## Rust library
 
-The Rust library and its existing parser are in `src/lib.rs`. Check that library with:
+The Rust library is in `src/lib.rs`. Run `cargo check` to check it.
+
+## Git
+
+The provided `.git` path is read-only in this workspace, so repository metadata is stored in `.git-data`. Use the project wrapper for Git commands:
 
 ```sh
-cargo check
+scripts/git.sh status
+scripts/git.sh add .
+scripts/git.sh commit -m "Describe the change"
 ```
-
-The browser translator currently handles a small shared subset of each listed language. It does not translate complete applications, framework code, or every language feature.
