@@ -90,12 +90,16 @@ export class Parser {
   }
 
   simpleStatement() {
-    if (this.peek()?.type === "name" && this.tokens[this.index + 1]?.value === "=") {
-      const name = this.take().value;
-      this.take();
-      const value = this.expression();
-      this.accept(";");
-      return { type: "assign", name, value };
+    if (this.peek()?.type === "name") {
+      const start = this.index;
+      const target = this.primary();
+      if (this.accept("=")) {
+        const value = this.expression();
+        this.accept(";");
+        if (target.type === "name") return { type: "assign", name: target.value, value };
+        return { type: "set", target, value };
+      }
+      this.index = start;
     }
     const value = this.expression();
     this.accept(";");
@@ -153,30 +157,66 @@ export class Parser {
   primary() {
     const token = this.take();
     if (!token) throw new Error("Expected an expression");
-    if (token.type === "string") return { type: "string", value: token.value };
-    if (token.type === "number") return { type: "number", value: token.value };
+    if (token.type === "string") return this.postfix({ type: "string", value: token.value });
+    if (token.type === "number") return this.postfix({ type: "number", value: token.value });
     if (token.value === "-") return { type: "unary", op: "-", value: this.primary() };
     if (token.value === "(") {
       const value = this.expression();
       this.expect(")");
-      return value;
+      return this.postfix(value);
     }
+    if (token.value === "[") return this.postfix(this.collection("]", false));
+    if (token.value === "{") return this.postfix(this.collection("}", true));
 
     if (token.type === "name") {
-      if (["true", "True", "TRUE"].includes(token.value)) return { type: "bool", value: true };
-      if (["false", "False", "FALSE"].includes(token.value)) return { type: "bool", value: false };
-      if (["nil", "null", "None", "NULL", "NA"].includes(token.value)) return { type: "nil" };
+      if (["true", "True", "TRUE"].includes(token.value)) return this.postfix({ type: "bool", value: true });
+      if (["false", "False", "FALSE"].includes(token.value)) return this.postfix({ type: "bool", value: false });
+      if (["nil", "null", "None", "NULL", "NA"].includes(token.value)) return this.postfix({ type: "nil" });
       if (this.accept("(")) {
         const args = [];
         if (!this.is(")")) {
           do args.push(this.expression()); while (this.accept(","));
         }
         this.expect(")");
-        return { type: "call", name: token.value, args };
+        return this.postfix({ type: "call", name: token.value, args });
       }
-      return { type: "name", value: token.value };
+      return this.postfix({ type: "name", value: token.value });
     }
 
     throw new Error(`Unexpected token '${token.value}'`);
+  }
+
+  postfix(expression) {
+    while (this.accept("[")) {
+      const index = this.expression();
+      this.expect("]");
+      expression = { type: "index", object: expression, index, luaIndex: this.language === "lua" };
+    }
+    return expression;
+  }
+
+  collection(terminator, isTable) {
+    const fields = [];
+    while (!this.is(terminator)) {
+      let key = null;
+      if (isTable && this.accept("[")) {
+        key = this.expression();
+        this.expect("]");
+        this.expect("=");
+      } else if (isTable && this.peek()?.type === "name" && this.tokens[this.index + 1]?.value === "=") {
+        key = { type: "string", value: this.take().value };
+        this.expect("=");
+      } else if (isTable && this.peek()?.type === "name" && this.tokens[this.index + 1]?.value === ":") {
+        key = { type: "string", value: this.take().value };
+        this.expect(":");
+      } else if (isTable && this.peek()?.type === "string" && this.tokens[this.index + 1]?.value === ":") {
+        key = { type: "string", value: this.take().value };
+        this.expect(":");
+      }
+      fields.push({ key, value: this.expression() });
+      if (!this.accept(",") && !this.accept(";")) break;
+    }
+    this.expect(terminator);
+    return { type: "table", fields };
   }
 }

@@ -11,5 +11,5 @@ export function translate(source, from, to) {
   const normalize = config.normalizer ? sourceNormalizers[config.normalizer] : undefined;
   const normalized = normalize ? normalize(source) : source;
   const program = new Parser(tokenize(normalized, from), from).program();
-  return renderStatements(program, to).join("\n");
+  return renderStatements(program, to, from).join("\n");
 }

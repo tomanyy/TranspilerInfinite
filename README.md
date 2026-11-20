@@ -4,7 +4,7 @@ Universal code-to-code transpiler for translating between (almot) any programmin
 
 **Website:** [Transpiler Infinite](https://tomanyy.github.io/transpiler-infinite/)
 
-The translator supports a small shared syntax subset. See [supported_languages.md](supported_languages.md) for the complete list and support notes.
+The translator supports a small shared syntax subset, including Lua table constructors and indexed table reads and writes. See [supported_languages.md](supported_languages.md) for the complete language list and support notes.
 
 ## Run the website
 
