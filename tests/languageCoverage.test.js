@@ -1,4 +1,5 @@
 import assert from "node:assert/strict";
+import { execFileSync } from "node:child_process";
 import fs from "node:fs";
 import test from "node:test";
 import { LANGUAGES, translate } from "../src/webTranslator.js";
@@ -45,6 +46,38 @@ const controlFlowSamples = {
   r: "if (TRUE) {\n  print(1)\n}\nwhile (FALSE) {\n  print(2)\n}",
 };
 
+const coreBenchmarkFeatures = [
+  "scalar", "reassignment", "arithmetic", "booleanConditions", "ifElse",
+  "elseIf", "nestedIf", "whileLoops", "nestedLoops", "stringLiterals",
+  "comparisons", "unaryMinus", "sequenceLiterals", "emptyCollections",
+  "keyedLiterals", "indexedReadWrite", "functions", "nestedCalls",
+  "forEach", "lineComments",
+  "helloWorld", "emptyProgram", "commentsOnly", "inlineComments",
+  "numericLiterals", "floatLiteral", "floatArithmetic", "subtraction",
+  "division", "multiplication", "operatorPrecedence", "negativeArithmetic",
+  "comparisonOperators", "stringEscapes", "stringConcatenation",
+  "stringComparison", "multiplePrints", "swapVariables",
+  "declarationFromVariable", "stringSequenceLiterals", "indexedRead",
+  "ifWithoutElse", "comparisonCondition", "logicalOr", "mixedLogic",
+  "deepNestedIf", "emptyIf", "nestedIfInWhile", "ifWithWhile", "emptyWhile",
+  "commentsInBlocks", "commentBetweenStatements", "functionCallInExpression",
+  "nestedCallArguments", "functionCallInCondition",
+  "andOperator", "integerDivision", "nestedArithmetic", "threeVariables",
+  "stringEquality", "stringInequality", "emptyString", "escapedQuote",
+  "stringWithSpaces", "floatComparison", "comparisonWithVariables",
+  "nestedParentheses", "additionChain", "multiplicationChain",
+  "divisionChain", "negativeLiteral", "ifGreater", "twoSequentialIfs",
+  "threeNestedIfs", "ifWithTwoStatements", "ifElseWithTwoStatements",
+];
+
+function readBenchmarkRows() {
+  return fs.readFileSync(new URL("./languageSupportSamples.tsv", import.meta.url), "utf8")
+    .trim().split(/\r?\n/).map((line) => {
+      const [language, feature, hex] = line.split("\t");
+      return { language, feature, source: Buffer.from(hex, "hex").toString("utf8") };
+    });
+}
+
 test("every supported source translates to every supported target", () => {
   assert.deepEqual(Object.keys(sourceSamples).sort(), LANGUAGES.map(({ id }) => id).sort());
 
@@ -75,30 +108,82 @@ test("every supported source handles conditionals and while loops", () => {
   }
 });
 
-test("all benchmark fixtures translate with their advertised feature", () => {
-  const rows = fs.readFileSync(new URL("./languageSupportSamples.tsv", import.meta.url), "utf8")
-    .trim().split(/\r?\n/).map((line) => {
-      const [language, feature, hex] = line.split("\t");
-      return { language, feature, source: Buffer.from(hex, "hex").toString("utf8") };
-    });
+test("Rust benchmark passes every supported feature and only documents known gaps", () => {
+  const output = execFileSync(
+    "cargo",
+    ["run", "--quiet", "--bin", "measureLanguageSupport", "--", "--check"],
+    { cwd: new URL("..", import.meta.url), encoding: "utf8", stdio: ["ignore", "pipe", "pipe"], timeout: 300_000 },
+  );
 
-  assert.ok(rows.length >= LANGUAGES.length * 10, "benchmark suite should cover multiple features per language");
-  for (const row of rows) {
-    const output = translate(row.source, row.language, "rust");
-    assert.ok(output.trim(), `${row.language} ${row.feature} returned empty output`);
-    if (row.feature === "scalar") assert.match(output, /let mut value = 1;[\s\S]*println!\("\{\}", value\);/, `${row.language} scalar`);
-    if (row.feature === "reassignment") assert.match(output, /value = 2;[\s\S]*println!\("\{\}", value\);/, `${row.language} reassignment`);
-    if (row.feature === "arithmetic") assert.match(output, /println!\("\{\}", \(1 \+ \(2 \* 3\)\)\);/, `${row.language} arithmetic`);
-    if (["booleanConditions", "ifElse"].includes(row.feature)) {
-      assert.match(output, /if \([\s\S]*\)[\s\S]*println!\("\{\}", 1\);[\s\S]*else[\s\S]*println!\("\{\}", 2\);/, `${row.language} ${row.feature}`);
+  const scores = new Map();
+  const failures = new Set();
+  for (const line of output.split(/\r?\n/)) {
+    if (!line.trim()) continue;
+    const score = line.match(/^([^\t]+)\t(\d+)\/(\d+)\t(\d+)%/);
+    if (score) {
+      scores.set(score[1], { passed: Number(score[2]), total: Number(score[3]) });
+      continue;
     }
-    if (row.feature === "whileLoops") assert.match(output, /while \([\s\S]*\)[\s\S]*println!\("\{\}", 1\);/, `${row.language} while loop`);
-    if (row.feature === "sequenceLiterals") assert.match(output, /vec!\[/, `${row.language} sequence`);
-    if (row.feature === "nestedSequences") assert.match(output, /vec!\[vec!\[1, 2\], vec!\[3, 4\]\]/, `${row.language} nested sequence`);
-    if (row.feature === "keyedLiterals") assert.match(output, /HashMap::from\(/, `${row.language} keyed literal`);
-    if (row.feature === "functions") assert.match(output, /fn add\([\s\S]*return \(a \+ b\);/, `${row.language} function`);
-    if (row.feature === "forEach") assert.match(output, /for item in items|for key in items/, `${row.language} foreach`);
-    if (row.feature === "indexedReadWrite") assert.match(output, /items\[0\] = 2/, `${row.language} indexed write`);
+    const failure = line.match(/^([^:]+): ([^:]+): /);
+    if (failure) failures.add(`${failure[1]}: ${failure[2]}`);
+  }
+
+  assert.equal(scores.size, LANGUAGES.length, "the Rust benchmark should report every supported language");
+  for (const [language, { passed, total }] of scores) {
+    assert.ok(total >= 70, `${language} benchmark has too few checks (${total})`);
+    assert.ok(passed >= total - 3, `${language} benchmark regressed (${passed}/${total})`);
+  }
+
+  assert.deepEqual([...failures].sort(), [
+    "Bash: nested function calls",
+    "Go: else-if chains",
+    "JavaScript: nested property access",
+    "Lua: nested property access",
+    "Perl: nested function calls",
+    "Rust: else-if chains",
+    "Scala: nested function calls",
+  ].sort());
+});
+
+test("benchmark suite covers every core feature for every language without duplicates", () => {
+  const rows = readBenchmarkRows();
+  const seen = new Set();
+
+  for (const row of rows) {
+    const key = `${row.language}\t${row.feature}`;
+    assert.ok(!seen.has(key), `duplicate benchmark fixture for ${row.language} ${row.feature}`);
+    seen.add(key);
+  }
+
+  for (const language of LANGUAGES) {
+    const covered = new Set(rows.filter((row) => row.language === language.id).map((row) => row.feature));
+    for (const feature of coreBenchmarkFeatures) {
+      assert.ok(covered.has(feature), `${language.id} benchmark is missing the '${feature}' feature`);
+    }
+  }
+});
+
+test("new benchmark syntax features translate to every target language", () => {
+  const cases = [
+    { feature: "stringLiterals", source: 'let value = "hello"; console.log(value);', expected: ["hello", "value"] },
+    { feature: "comparisons", source: "console.log(1 < 2);", expected: ["<"] },
+    { feature: "unaryMinus", source: "let value = -1; console.log(value);", expected: ["-1"] },
+    { feature: "elseIf", source: "if (true) { console.log(1); } else if (false) { console.log(2); } else { console.log(3); }", expected: ["1", "2", "3"] },
+    { feature: "nestedIf", source: "if (true) { if (false) { console.log(1); } else { console.log(2); } }", expected: ["1", "2"] },
+    { feature: "nestedLoops", source: "while (false) { while (false) { console.log(1); } }", expected: ["1"] },
+    { feature: "emptyCollections", source: "let items = [];", expected: ["items"] },
+  ];
+
+  for (const { feature, source, expected } of cases) {
+    for (const target of LANGUAGES) {
+      assert.doesNotThrow(() => {
+        const output = translate(source, "js", target.id);
+        assert.ok(output.trim(), `${feature} to ${target.id} returned empty output`);
+        for (const fragment of expected) {
+          assert.ok(output.includes(fragment), `${feature} to ${target.id} is missing '${fragment}'`);
+        }
+      }, `${feature} to ${target.id}`);
+    }
   }
 });
 

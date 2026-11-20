@@ -115,11 +115,125 @@ fn matches(feature: &str, language: &str, output: &str, scalar_output: &str) -> 
         "whileLoops" => output.contains("while (false)") && output.contains("println!(\"{}\",") ,
         "sequenceLiterals" => output.contains("vec![1, 2]"),
         "nestedSequences" => output.contains("vec![vec![1, 2], vec![3, 4]]"),
+        "nestedCalls" => output.contains("fn twice(")
+            && output.contains("return (n * 2);")
+            && output.contains("println!(\"{}\", twice(3));"),
+        "nestedPropertyAccess" => output.contains("users[0][\"name\"]")
+            && output.contains("println!(\"{}\", users[0][\"name\"]);") ,
+        "elseIf" => output.contains("if (true)")
+            && output.contains("if (false)")
+            && output.contains("println!(\"{}\", 1);")
+            && output.contains("println!(\"{}\", 2);")
+            && output.contains("println!(\"{}\", 3);"),
+        "stringLiterals" => output.contains("let mut value = \"hello\";")
+            && output.contains("println!(\"{}\", value);"),
+        "comparisons" => output.contains("(1 < 2)")
+            && output.contains("println!(\"{}\","),
+        "unaryMinus" => output.contains("let mut value = -1;")
+            && output.contains("println!(\"{}\", value);"),
+        "nestedIf" => output.contains("if (true)")
+            && output.contains("if (false)")
+            && output.contains("println!(\"{}\", 1);")
+            && output.contains("println!(\"{}\", 2);"),
+        "nestedLoops" => output.matches("while (false)").count() >= 2
+            && output.contains("println!(\"{}\", 1);"),
+        "emptyCollections" => output.contains("let mut items = vec![];"),
         "keyedLiterals" => output.contains("HashMap::from([(\"name\", \"Ada\")])"),
         "indexedReadWrite" => output.contains("items[0] = 2") && output.contains("println!(\"{}\", items[0]);"),
         "functions" => output.contains("fn add(") && output.contains("return (a + b)"),
         "forEach" => output.contains("for key in ") || output.contains("for item in "),
         "lineComments" | "blockComments" => output == scalar_output,
+        "helloWorld" => output.contains("\"Hello, world!\""),
+        "emptyProgram" | "commentsOnly" => output.trim().is_empty(),
+        "inlineComments" => output == scalar_output && !output.contains("trailing comment"),
+        "numericLiterals" => output.contains("println!(\"{}\", 0);")
+            && output.contains("println!(\"{}\", 42);")
+            && output.contains("println!(\"{}\", 1000000);"),
+        "floatLiteral" => output.contains("println!(\"{}\", 3.14);"),
+        "floatArithmetic" => output.contains("(1.5 + 2.5)"),
+        "subtraction" => output.contains("(5 - 2)"),
+        "division" => output.contains("(8 / 2)"),
+        "multiplication" => output.contains("(6 * 7)"),
+        "operatorPrecedence" => output.contains("((2 + (3 * 4)) - (8 / 2))"),
+        "negativeArithmetic" => output.contains("(-5 + 3)"),
+        "comparisonOperators" => ["(1 < 2)", "(1 <= 2)", "(2 > 1)", "(2 >= 1)", "(1 == 1)", "(1 != 2)"]
+            .iter()
+            .all(|operator| output.contains(operator)),
+        "stringEscapes" => output.contains("line\\nbreak"),
+        "stringConcatenation" => output.contains("(\"Hello, \" + \"world!\")"),
+        "stringComparison" => output.contains("(\"apple\" < \"banana\")"),
+        "multiplePrints" => output.contains("println!(\"{}\", 1);")
+            && output.contains("println!(\"{}\", 2);")
+            && output.contains("println!(\"{}\", 3);"),
+        "swapVariables" => output.contains("let mut temp = a;")
+            && output.contains("a = b;")
+            && output.contains("b = temp;")
+            && output.contains("println!(\"{}\", a);")
+            && output.contains("println!(\"{}\", b);"),
+        "declarationFromVariable" => output.contains("let mut b = a;"),
+        "stringSequenceLiterals" => output.contains("vec![\"a\", \"b\"]") && output.contains("items[0]"),
+        "indexedRead" => output.contains("items[0]"),
+        "ifWithoutElse" => output.contains("if (true)") && output.contains("println!(\"{}\", 1);"),
+        "comparisonCondition" => output.contains("if ((2 < 3))") && output.contains("println!(\"{}\", 1);"),
+        "logicalOr" => output.contains("(true || false)")
+            && output.contains("println!(\"{}\", 1);")
+            && output.contains("println!(\"{}\", 2);"),
+        "mixedLogic" => output.contains("(true || (false && false))")
+            && output.contains("println!(\"{}\", 1);")
+            && output.contains("println!(\"{}\", 2);"),
+        "deepNestedIf" => output.matches("if (").count() >= 3
+            && output.contains("println!(\"{}\", 1);")
+            && output.contains("println!(\"{}\", 2);"),
+        "emptyIf" => output.contains("if (false)") && !output.contains("println!"),
+        "nestedIfInWhile" => output.contains("while (false)")
+            && output.contains("if (true)")
+            && output.contains("println!(\"{}\", 1);"),
+        "ifWithWhile" => output.contains("if (true)")
+            && output.contains("while (false)")
+            && output.contains("println!(\"{}\", 1);"),
+        "emptyWhile" => output.contains("while (false)") && !output.contains("println!"),
+        "commentsInBlocks" => output.contains("if (true)")
+            && output.contains("println!(\"{}\", 1);")
+            && !output.contains("inside a block"),
+        "commentBetweenStatements" => output == scalar_output && !output.contains("between statements"),
+        "functionCallInExpression" => output.contains("fn add(") && output.contains("(add(1, 2) + 3)"),
+        "nestedCallArguments" => output.contains("fn add(") && output.contains("add(add(1, 2), add(3, 4))"),
+        "functionCallInCondition" => output.contains("fn add(")
+            && output.contains("(add(2, 2) == 4)")
+            && output.contains("println!(\"{}\", 1);"),
+        "andOperator" => output.contains("(true && false)") && output.contains("println!(\"{}\", 1);"),
+        "integerDivision" => output.contains("(7 / 2)"),
+        "nestedArithmetic" => output.contains("((1 + 2) * (3 - 4))"),
+        "threeVariables" => output.contains("let mut a = 1;")
+            && output.contains("let mut b = 2;")
+            && output.contains("let mut c = 3;")
+            && output.contains("((a + b) + c)"),
+        "stringEquality" => output.contains("(\"a\" == \"a\")"),
+        "stringInequality" => output.contains("(\"a\" != \"b\")"),
+        "emptyString" => output.contains("println!(\"{}\", \"\");"),
+        "escapedQuote" => output.contains("say \\\"hi\\\""),
+        "stringWithSpaces" => output.contains("\"hello world\""),
+        "floatComparison" => output.contains("(1.5 < 2.5)"),
+        "comparisonWithVariables" => output.contains("(a < b)"),
+        "nestedParentheses" => output.contains("(1 + 2)"),
+        "additionChain" => output.contains("(((1 + 2) + 3) + 4)"),
+        "multiplicationChain" => output.contains("((2 * 3) * 4)"),
+        "divisionChain" => output.contains("((100 / 5) / 2)"),
+        "negativeLiteral" => output.contains("println!(\"{}\", -42);"),
+        "ifGreater" => output.contains("(5 > 3)") && output.contains("println!(\"{}\", 1);"),
+        "twoSequentialIfs" => output.matches("if (").count() >= 2
+            && output.contains("println!(\"{}\", 1);")
+            && output.contains("println!(\"{}\", 2);"),
+        "threeNestedIfs" => output.matches("if (").count() >= 3
+            && output.contains("println!(\"{}\", 1);"),
+        "ifWithTwoStatements" => output.contains("if (true)")
+            && output.contains("println!(\"{}\", 1);")
+            && output.contains("println!(\"{}\", 2);"),
+        "ifElseWithTwoStatements" => output.contains("else")
+            && output.contains("println!(\"{}\", 1);")
+            && output.contains("println!(\"{}\", 2);")
+            && output.contains("println!(\"{}\", 3);")
+            && output.contains("println!(\"{}\", 4);"),
         _ => {
             let _ = language;
             false
@@ -137,12 +251,77 @@ fn feature_label(feature: &str) -> &str {
         "whileLoops" => "while loops",
         "sequenceLiterals" => "sequence literals",
         "nestedSequences" => "nested sequences",
+        "nestedCalls" => "nested function calls",
+        "nestedPropertyAccess" => "nested property access",
+        "elseIf" => "else-if chains",
+        "stringLiterals" => "string literals",
+        "comparisons" => "comparisons",
+        "unaryMinus" => "unary minus",
+        "nestedIf" => "nested if statements",
+        "nestedLoops" => "nested loops",
+        "emptyCollections" => "empty collections",
         "keyedLiterals" => "keyed literals",
         "indexedReadWrite" => "indexed reads/writes",
         "functions" => "function definitions and returns",
         "forEach" => "for-each loops",
         "lineComments" => "line comments",
         "blockComments" => "block comments",
+        "helloWorld" => "hello world",
+        "emptyProgram" => "empty program",
+        "commentsOnly" => "comments only",
+        "inlineComments" => "inline comments",
+        "numericLiterals" => "numeric literals",
+        "floatLiteral" => "float literals",
+        "floatArithmetic" => "float arithmetic",
+        "subtraction" => "subtraction",
+        "division" => "division",
+        "multiplication" => "multiplication",
+        "operatorPrecedence" => "operator precedence",
+        "negativeArithmetic" => "negative arithmetic",
+        "comparisonOperators" => "comparison operators",
+        "stringEscapes" => "string escapes",
+        "stringConcatenation" => "string concatenation",
+        "stringComparison" => "string comparison",
+        "multiplePrints" => "multiple prints",
+        "swapVariables" => "variable swapping",
+        "declarationFromVariable" => "declaration from variable",
+        "stringSequenceLiterals" => "string sequence literals",
+        "indexedRead" => "indexed reads",
+        "ifWithoutElse" => "if without else",
+        "comparisonCondition" => "comparison conditions",
+        "logicalOr" => "logical or",
+        "mixedLogic" => "mixed boolean logic",
+        "deepNestedIf" => "deeply nested ifs",
+        "emptyIf" => "empty if bodies",
+        "nestedIfInWhile" => "if inside while",
+        "ifWithWhile" => "while inside if",
+        "emptyWhile" => "empty while bodies",
+        "commentsInBlocks" => "comments in blocks",
+        "commentBetweenStatements" => "comments between statements",
+        "functionCallInExpression" => "function calls in expressions",
+        "nestedCallArguments" => "nested call arguments",
+        "functionCallInCondition" => "function calls in conditions",
+        "andOperator" => "logical and",
+        "integerDivision" => "integer division",
+        "nestedArithmetic" => "nested arithmetic",
+        "threeVariables" => "three-variable arithmetic",
+        "stringEquality" => "string equality",
+        "stringInequality" => "string inequality",
+        "emptyString" => "empty strings",
+        "escapedQuote" => "escaped quotes",
+        "stringWithSpaces" => "strings with spaces",
+        "floatComparison" => "float comparisons",
+        "comparisonWithVariables" => "comparisons with variables",
+        "nestedParentheses" => "nested parentheses",
+        "additionChain" => "addition chains",
+        "multiplicationChain" => "multiplication chains",
+        "divisionChain" => "division chains",
+        "negativeLiteral" => "negative literals",
+        "ifGreater" => "greater-than conditions",
+        "twoSequentialIfs" => "two sequential ifs",
+        "threeNestedIfs" => "three nested ifs",
+        "ifWithTwoStatements" => "if bodies with two statements",
+        "ifElseWithTwoStatements" => "if/else bodies with two statements",
         _ => feature,
     }
 }
@@ -234,6 +413,7 @@ fn update_supported_languages(results: &[LanguageResult]) -> Result<(), String> 
 }
 
 fn main() {
+    let check_only = std::env::args().any(|argument| argument == "--check");
     let cases = match load_cases() {
         Ok(cases) => cases,
         Err(error) => {
@@ -295,6 +475,9 @@ fn main() {
         });
     }
     report.sort_by(|left, right| left.name.cmp(&right.name));
+    if check_only {
+        return;
+    }
     if let Err(error) = update_supported_languages(&report) {
         eprintln!("Could not update progress badges: {error}");
         std::process::exit(1);
