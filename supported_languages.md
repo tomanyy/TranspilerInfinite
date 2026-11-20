@@ -11,23 +11,23 @@ These percentages describe this benchmark, not the share of each language's comp
 | Language | Passing features | Benchmark score |
 | --- | ---: | ---: |
 | Bash | 6/12 | ![Progress](https://geps.dev/progress/50?label=50%25&min=0&max=100&barColor=cf222e) |
-| C# | 9/13 | ![Progress](https://geps.dev/progress/69?label=69%25&min=0&max=100&barColor=%23bf8700) |
-| C++ | 9/13 | ![Progress](https://geps.dev/progress/69?label=69%25&min=0&max=100&barColor=%23bf8700) |
-| Dart | 11/13 | ![Progress](https://geps.dev/progress/85?label=85%25&min=0&max=100&barColor=%232da44e) |
-| Go | 9/13 | ![Progress](https://geps.dev/progress/69?label=69%25&min=0&max=100&barColor=%23bf8700) |
-| Java | 9/13 | ![Progress](https://geps.dev/progress/69?label=69%25&min=0&max=100&barColor=%23bf8700) |
-| JavaScript | 11/13 | ![Progress](https://geps.dev/progress/85?label=85%25&min=0&max=100&barColor=%232da44e) |
-| Kotlin | 9/13 | ![Progress](https://geps.dev/progress/69?label=69%25&min=0&max=100&barColor=%23bf8700) |
-| Lua | 11/13 | ![Progress](https://geps.dev/progress/85?label=85%25&min=0&max=100&barColor=%232da44e) |
-| PHP | 10/13 | ![Progress](https://geps.dev/progress/77?label=77%25&min=0&max=100&barColor=%23bf8700) |
-| Perl | 5/12 | ![Progress](https://geps.dev/progress/42?label=42%25&min=0&max=100&barColor=%23cf222e) |
-| Python | 10/12 | ![Progress](https://geps.dev/progress/83?label=83%25&min=0&max=100&barColor=%232da44e) |
-| R | 9/12 | ![Progress](https://geps.dev/progress/75?label=75%25&min=0&max=100&barColor=%23bf8700) |
-| Ruby | 9/12 | ![Progress](https://geps.dev/progress/75?label=75%25&min=0&max=100&barColor=%23bf8700) |
-| Rust | 9/13 | ![Progress](https://geps.dev/progress/69?label=69%25&min=0&max=100&barColor=%23bf8700) |
-| Scala | 8/13 | ![Progress](https://geps.dev/progress/62?label=62%25&min=0&max=100&barColor=%23bf8700) |
-| Swift | 10/13 | ![Progress](https://geps.dev/progress/77?label=77%25&min=0&max=100&barColor=%23bf8700) |
-| TypeScript | 10/13 | ![Progress](https://geps.dev/progress/77?label=77%25&min=0&max=100&barColor=%23bf8700) |
+| C# | 9/13 | ![Progress](https://geps.dev/progress/69?label=69%25&min=0&max=100&barColor=bf8700) |
+| C++ | 9/13 | ![Progress](https://geps.dev/progress/69?label=69%25&min=0&max=100&barColor=bf8700) |
+| Dart | 11/13 | ![Progress](https://geps.dev/progress/85?label=85%25&min=0&max=100&barColor=2da44e) |
+| Go | 9/13 | ![Progress](https://geps.dev/progress/69?label=69%25&min=0&max=100&barColor=bf8700) |
+| Java | 9/13 | ![Progress](https://geps.dev/progress/69?label=69%25&min=0&max=100&barColor=bf8700) |
+| JavaScript | 11/13 | ![Progress](https://geps.dev/progress/85?label=85%25&min=0&max=100&barColor=2da44e) |
+| Kotlin | 9/13 | ![Progress](https://geps.dev/progress/69?label=69%25&min=0&max=100&barColor=bf8700) |
+| Lua | 11/13 | ![Progress](https://geps.dev/progress/85?label=85%25&min=0&max=100&barColor=2da44e) |
+| PHP | 10/13 | ![Progress](https://geps.dev/progress/77?label=77%25&min=0&max=100&barColor=bf8700) |
+| Perl | 5/12 | ![Progress](https://geps.dev/progress/42?label=42%25&min=0&max=100&barColor=cf222e) |
+| Python | 10/12 | ![Progress](https://geps.dev/progress/83?label=83%25&min=0&max=100&barColor=2da44e) |
+| R | 9/12 | ![Progress](https://geps.dev/progress/75?label=75%25&min=0&max=100&barColor=bf8700) |
+| Ruby | 9/12 | ![Progress](https://geps.dev/progress/75?label=75%25&min=0&max=100&barColor=bf8700) |
+| Rust | 9/13 | ![Progress](https://geps.dev/progress/69?label=69%25&min=0&max=100&barColor=bf8700) |
+| Scala | 8/13 | ![Progress](https://geps.dev/progress/62?label=62%25&min=0&max=100&barColor=bf8700) |
+| Swift | 10/13 | ![Progress](https://geps.dev/progress/77?label=77%25&min=0&max=100&barColor=bf8700) |
+| TypeScript | 10/13 | ![Progress](https://geps.dev/progress/77?label=77%25&min=0&max=100&barColor=bf8700) |
 
 ### Features that fail this benchmark
 

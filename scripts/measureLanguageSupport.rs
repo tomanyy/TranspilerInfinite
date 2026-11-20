@@ -170,7 +170,7 @@ fn language_label(language: &str) -> &str {
 }
 
 fn progress_badge(percent: usize) -> String {
-    let color = if percent >= 80 { "%232da44e" } else if percent >= 60 { "%23bf8700" } else { "%23cf222e" };
+    let color = if percent >= 80 { "2da44e" } else if percent >= 60 { "bf8700" } else { "cf222e" };
     format!(
         "![Progress](https://geps.dev/progress/{percent}?label={percent}%25&min=0&max=100&barColor={color})"
     )
