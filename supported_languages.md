@@ -10,7 +10,7 @@ These percentages describe this benchmark, not the share of each language's comp
 
 | Language | Passing features | Benchmark score |
 | --- | ---: | ---: |
-| Bash | 6/12 | ![Progress](https://geps.dev/progress/50?label=50%25&min=0&max=100&barColor=%23cf222e) |
+| Bash | 6/12 | ![Progress](https://geps.dev/progress/50?label=50%25&min=0&max=100&barColor=cf222e) |
 | C# | 9/13 | ![Progress](https://geps.dev/progress/69?label=69%25&min=0&max=100&barColor=%23bf8700) |
 | C++ | 9/13 | ![Progress](https://geps.dev/progress/69?label=69%25&min=0&max=100&barColor=%23bf8700) |
 | Dart | 11/13 | ![Progress](https://geps.dev/progress/85?label=85%25&min=0&max=100&barColor=%232da44e) |
