@@ -56,7 +56,21 @@ function renderExpression(expression, language, sourceLanguage) {
         if (language === "bash") return `(${args.join(" ")})`;
         if (language === "perl") return `[${args.join(", ")}]`;
       }
+      if (sourceLanguage === "kotlin" && expression.name === "listOf" && language === "rust") {
+        return `vec![${args.join(", ")}]`;
+      }
+      if (sourceLanguage === "scala" && expression.name === "List" && language === "rust") {
+        return `vec![${args.join(", ")}]`;
+      }
+      if (sourceLanguage === "java" && expression.name === "Map.of" && language === "rust" && args.length % 2 === 0) {
+        const entries = [];
+        for (let index = 0; index < args.length; index += 2) entries.push(`(${args[index]}, ${args[index + 1]})`);
+        return `std::collections::HashMap::from([${entries.join(", ")}])`;
+      }
       if (expression.name === "pairs" && args.length === 1) {
+        if (language === "rust" && sourceLanguage === "lua") {
+          return `${args[0]}.iter().enumerate().map(|(index, _)| index + 1)`;
+        }
         if (language === "js" || language === "typescript" || language === "dart") return `Object.keys(${args[0]})`;
         if (language === "python") return `${args[0]}.keys()`;
         if (language === "ruby") return `${args[0]}.keys`;
@@ -195,6 +209,7 @@ function renderStatements(statements, language, sourceLanguage, depth = 0, decla
       const params = statement.params.join(", ");
       let header;
       if (config.syntax === "lua") header = `function ${statement.name}(${params})`;
+      else if (language === "rust") header = `fn ${statement.name}(${statement.params.map((param) => `${param}: i64`).join(", ")}) -> i64 {`;
       else if (config.syntax === "python") header = `def ${statement.name}(${params}):`;
       else if (config.syntax === "ruby") header = `def ${statement.name}(${params})`;
       else if (config.syntax === "go") header = `func ${statement.name}(${params}) {`;
@@ -216,6 +231,7 @@ function renderStatements(statements, language, sourceLanguage, depth = 0, decla
       else if (config.syntax === "python") header = `for ${variable} in ${iterator}:`;
       else if (config.syntax === "ruby") header = `for ${variable} in ${iterator} do`;
       else if (config.syntax === "bash") header = `for ${variable} in ${iterator}; do`;
+      else if (language === "rust") header = `for ${variable} in ${iterator} {`;
       else header = `for (const ${variable} of ${iterator}) {`;
       lines.push(indentation + header, ...renderStatements(statement.body, language, sourceLanguage, depth + 1, declaredVariables));
       if (["lua", "ruby"].includes(config.syntax)) lines.push(indentation + "end");

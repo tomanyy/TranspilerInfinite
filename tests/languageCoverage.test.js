@@ -1,4 +1,5 @@
 import assert from "node:assert/strict";
+import fs from "node:fs";
 import test from "node:test";
 import { LANGUAGES, translate } from "../src/webTranslator.js";
 
@@ -72,6 +73,50 @@ test("every supported source handles conditionals and while loops", () => {
       }, `${source.id} to ${target.id}`);
     }
   }
+});
+
+test("all benchmark fixtures translate with their advertised feature", () => {
+  const rows = fs.readFileSync(new URL("./languageSupportSamples.tsv", import.meta.url), "utf8")
+    .trim().split(/\r?\n/).map((line) => {
+      const [language, feature, hex] = line.split("\t");
+      return { language, feature, source: Buffer.from(hex, "hex").toString("utf8") };
+    });
+
+  assert.ok(rows.length >= LANGUAGES.length * 10, "benchmark suite should cover multiple features per language");
+  for (const row of rows) {
+    const output = translate(row.source, row.language, "rust");
+    assert.ok(output.trim(), `${row.language} ${row.feature} returned empty output`);
+    if (row.feature === "scalar") assert.match(output, /let mut value = 1;[\s\S]*println!\("\{\}", value\);/, `${row.language} scalar`);
+    if (row.feature === "reassignment") assert.match(output, /value = 2;[\s\S]*println!\("\{\}", value\);/, `${row.language} reassignment`);
+    if (row.feature === "arithmetic") assert.match(output, /println!\("\{\}", \(1 \+ \(2 \* 3\)\)\);/, `${row.language} arithmetic`);
+    if (["booleanConditions", "ifElse"].includes(row.feature)) {
+      assert.match(output, /if \([\s\S]*\)[\s\S]*println!\("\{\}", 1\);[\s\S]*else[\s\S]*println!\("\{\}", 2\);/, `${row.language} ${row.feature}`);
+    }
+    if (row.feature === "whileLoops") assert.match(output, /while \([\s\S]*\)[\s\S]*println!\("\{\}", 1\);/, `${row.language} while loop`);
+    if (row.feature === "sequenceLiterals") assert.match(output, /vec!\[/, `${row.language} sequence`);
+    if (row.feature === "nestedSequences") assert.match(output, /vec!\[vec!\[1, 2\], vec!\[3, 4\]\]/, `${row.language} nested sequence`);
+    if (row.feature === "keyedLiterals") assert.match(output, /HashMap::from\(/, `${row.language} keyed literal`);
+    if (row.feature === "functions") assert.match(output, /fn add\([\s\S]*return \(a \+ b\);/, `${row.language} function`);
+    if (row.feature === "forEach") assert.match(output, /for item in items|for key in items/, `${row.language} foreach`);
+    if (row.feature === "indexedReadWrite") assert.match(output, /items\[0\] = 2/, `${row.language} indexed write`);
+  }
+});
+
+test("nested tables, typed function parameters, and language-native iteration translate", () => {
+  const lua = translate("local values = {1, 2}\nfor key in pairs(values) do print(key) end", "lua", "rust");
+  assert.match(lua, /for key in values\.iter\(\)\.enumerate\(\)/);
+  assert.match(lua, /println!\("\{\}", key\)/);
+
+  const typescript = translate(
+    "function add(a: number, b: number): number { return a + b; }\nconsole.log(add(1, 2));",
+    "typescript", "rust",
+  );
+  assert.match(typescript, /fn add\(a: i64, b: i64\) -> i64/);
+  assert.match(typescript, /return \(a \+ b\);/);
+
+  const python = translate("items = [1, 2]\nfor item in items:\n    print(item)", "python", "rust");
+  assert.match(python, /for item in items/);
+  assert.match(python, /println!\("\{\}", item\)/);
 });
 
 test("Rust printing and Bash assignment use valid idiomatic forms", () => {

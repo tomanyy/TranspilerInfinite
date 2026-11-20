@@ -4,53 +4,53 @@ These 18 languages are available in the source and target menus. Support varies 
 
 ## Rust translation benchmark
 
-The Rust executable in [scripts/measureLanguageSupport.rs](scripts/measureLanguageSupport.rs) measures how many of 12–13 representative source features the parser accepts and translates into Rust output matching expected feature shapes. Languages with a native block comment form have 13 checks; the others have 12. The equally weighted categories are scalar declaration/output, reassignment, arithmetic, boolean conditions, if/else, while, sequence literals, keyed literals, indexed reads/writes, function definition/return, for-each iteration, line comments, and applicable block comments. The benchmark checks emitted Rust patterns; it does not compile every generated sample.
+The Rust executable in [scripts/measureLanguageSupport.rs](scripts/measureLanguageSupport.rs) measures representative source features by translating fixtures into Rust and checking expected output shapes. Languages have 12–14 checks, including the features available in each language's fixture set. The categories include scalar declaration/output, reassignment, arithmetic, boolean conditions, if/else, while, sequence and nested sequence literals, keyed literals, indexed reads/writes, function definition/return, for-each iteration, line comments, and applicable block comments. The benchmark checks emitted Rust patterns; it does not compile every generated sample.
 
 These percentages describe this benchmark, not the share of each language's complete grammar that is supported. They measure source parsing and Rust code generation, not full semantic equivalence or every target backend. Run cargo run --bin measureLanguageSupport to reproduce the measurements and see which features fail.
 
 | Language | Passing features | Benchmark score |
 | --- | ---: | ---: |
-| Bash | 6/12 | ![Progress](https://geps.dev/progress/50?label=50%25&min=0&max=100&barColor=cf222e) |
-| C# | 9/13 | ![Progress](https://geps.dev/progress/69?label=69%25&min=0&max=100&barColor=bf8700) |
-| C++ | 9/13 | ![Progress](https://geps.dev/progress/69?label=69%25&min=0&max=100&barColor=bf8700) |
-| Dart | 11/13 | ![Progress](https://geps.dev/progress/85?label=85%25&min=0&max=100&barColor=2da44e) |
-| Go | 9/13 | ![Progress](https://geps.dev/progress/69?label=69%25&min=0&max=100&barColor=bf8700) |
-| Java | 9/13 | ![Progress](https://geps.dev/progress/69?label=69%25&min=0&max=100&barColor=bf8700) |
-| JavaScript | 11/13 | ![Progress](https://geps.dev/progress/85?label=85%25&min=0&max=100&barColor=2da44e) |
-| Kotlin | 9/13 | ![Progress](https://geps.dev/progress/69?label=69%25&min=0&max=100&barColor=bf8700) |
-| Lua | 11/13 | ![Progress](https://geps.dev/progress/85?label=85%25&min=0&max=100&barColor=2da44e) |
-| PHP | 10/13 | ![Progress](https://geps.dev/progress/77?label=77%25&min=0&max=100&barColor=bf8700) |
-| Perl | 5/12 | ![Progress](https://geps.dev/progress/42?label=42%25&min=0&max=100&barColor=cf222e) |
-| Python | 10/12 | ![Progress](https://geps.dev/progress/83?label=83%25&min=0&max=100&barColor=2da44e) |
-| R | 9/12 | ![Progress](https://geps.dev/progress/75?label=75%25&min=0&max=100&barColor=bf8700) |
-| Ruby | 9/12 | ![Progress](https://geps.dev/progress/75?label=75%25&min=0&max=100&barColor=bf8700) |
-| Rust | 9/13 | ![Progress](https://geps.dev/progress/69?label=69%25&min=0&max=100&barColor=bf8700) |
-| Scala | 8/13 | ![Progress](https://geps.dev/progress/62?label=62%25&min=0&max=100&barColor=bf8700) |
-| Swift | 10/13 | ![Progress](https://geps.dev/progress/77?label=77%25&min=0&max=100&barColor=bf8700) |
-| TypeScript | 10/13 | ![Progress](https://geps.dev/progress/77?label=77%25&min=0&max=100&barColor=bf8700) |
+| Bash | 12/12 | ![Progress](https://geps.dev/progress/100?label=100%25&min=0&max=100&barColor=2da44e) |
+| C# | 13/13 | ![Progress](https://geps.dev/progress/100?label=100%25&min=0&max=100&barColor=2da44e) |
+| C++ | 13/13 | ![Progress](https://geps.dev/progress/100?label=100%25&min=0&max=100&barColor=2da44e) |
+| Dart | 13/13 | ![Progress](https://geps.dev/progress/100?label=100%25&min=0&max=100&barColor=2da44e) |
+| Go | 13/13 | ![Progress](https://geps.dev/progress/100?label=100%25&min=0&max=100&barColor=2da44e) |
+| Java | 13/13 | ![Progress](https://geps.dev/progress/100?label=100%25&min=0&max=100&barColor=2da44e) |
+| JavaScript | 14/14 | ![Progress](https://geps.dev/progress/100?label=100%25&min=0&max=100&barColor=2da44e) |
+| Kotlin | 13/13 | ![Progress](https://geps.dev/progress/100?label=100%25&min=0&max=100&barColor=2da44e) |
+| Lua | 14/14 | ![Progress](https://geps.dev/progress/100?label=100%25&min=0&max=100&barColor=2da44e) |
+| PHP | 13/13 | ![Progress](https://geps.dev/progress/100?label=100%25&min=0&max=100&barColor=2da44e) |
+| Perl | 12/12 | ![Progress](https://geps.dev/progress/100?label=100%25&min=0&max=100&barColor=2da44e) |
+| Python | 12/12 | ![Progress](https://geps.dev/progress/100?label=100%25&min=0&max=100&barColor=2da44e) |
+| R | 12/12 | ![Progress](https://geps.dev/progress/100?label=100%25&min=0&max=100&barColor=2da44e) |
+| Ruby | 12/12 | ![Progress](https://geps.dev/progress/100?label=100%25&min=0&max=100&barColor=2da44e) |
+| Rust | 13/13 | ![Progress](https://geps.dev/progress/100?label=100%25&min=0&max=100&barColor=2da44e) |
+| Scala | 13/13 | ![Progress](https://geps.dev/progress/100?label=100%25&min=0&max=100&barColor=2da44e) |
+| Swift | 13/13 | ![Progress](https://geps.dev/progress/100?label=100%25&min=0&max=100&barColor=2da44e) |
+| TypeScript | 13/13 | ![Progress](https://geps.dev/progress/100?label=100%25&min=0&max=100&barColor=2da44e) |
 
 ### Features that fail this benchmark
 
 | Language | Features |
 | --- | --- |
-| Bash | arithmetic, sequence literals, keyed literals, indexed reads/writes, function definitions and returns, for-each loops |
-| C# | sequence literals, keyed literals, function definitions and returns, for-each loops |
-| C++ | sequence literals, keyed literals, function definitions and returns, for-each loops |
-| Dart | function definitions and returns, for-each loops |
-| Go | sequence literals, keyed literals, function definitions and returns, for-each loops |
-| Java | sequence literals, keyed literals, function definitions and returns, for-each loops |
-| JavaScript | function definitions and returns, for-each loops |
-| Kotlin | sequence literals, keyed literals, function definitions and returns, for-each loops |
-| Lua | function definitions and returns, for-each loops |
-| PHP | keyed literals, function definitions and returns, for-each loops |
-| Perl | boolean conditions, if/else, while loops, sequence literals, keyed literals, function definitions and returns, for-each loops |
-| Python | function definitions and returns, for-each loops |
-| R | keyed literals, function definitions and returns, for-each loops |
-| Ruby | keyed literals, function definitions and returns, for-each loops |
-| Rust | sequence literals, keyed literals, function definitions and returns, for-each loops |
-| Scala | sequence literals, keyed literals, indexed reads/writes, function definitions and returns, for-each loops |
-| Swift | keyed literals, function definitions and returns, for-each loops |
-| TypeScript | sequence literals, function definitions and returns, for-each loops |
+| Bash | None in this benchmark |
+| C# | None in this benchmark |
+| C++ | None in this benchmark |
+| Dart | None in this benchmark |
+| Go | None in this benchmark |
+| Java | None in this benchmark |
+| JavaScript | None in this benchmark |
+| Kotlin | None in this benchmark |
+| Lua | None in this benchmark |
+| PHP | None in this benchmark |
+| Perl | None in this benchmark |
+| Python | None in this benchmark |
+| R | None in this benchmark |
+| Ruby | None in this benchmark |
+| Rust | None in this benchmark |
+| Scala | None in this benchmark |
+| Swift | None in this benchmark |
+| TypeScript | None in this benchmark |
 
 ## Native target syntax checks
 

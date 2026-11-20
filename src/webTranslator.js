@@ -9,7 +9,9 @@ export { LANGUAGES };
 export function translate(source, from, to) {
   const config = languageConfig(from);
   const normalize = config.normalizer ? sourceNormalizers[config.normalizer] : undefined;
-  const normalized = normalize ? normalize(source) : source;
+  const languageNormalized = normalize ? normalize(source) : source;
+  const collectionsNormalized = sourceNormalizers.normalizeCollections(languageNormalized, from);
+  const normalized = sourceNormalizers.normalizeFunctionsAndLoops(collectionsNormalized, from);
   const program = new Parser(tokenize(normalized, from), from).program();
   return renderStatements(program, to, from).join("\n");
 }

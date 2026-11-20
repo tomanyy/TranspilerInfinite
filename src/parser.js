@@ -117,6 +117,28 @@ export class Parser {
   }
 
   braceStatement() {
+    if (this.accept("function")) {
+      const name = this.name();
+      const params = this.parameters();
+      const body = this.braceBlock();
+      return { type: "function", name, params, body };
+    }
+    if (this.accept("for")) {
+      const parenthesized = this.accept("(");
+      const variable = this.name();
+      this.expect("in");
+      const iterator = this.expression();
+      if (parenthesized) this.expect(")");
+      return { type: "forIn", variable, iterator, body: this.braceBlock() };
+    }
+    if (this.accept("return")) {
+      const values = [];
+      if (this.peek() && !this.is(";") && !this.is("}")) {
+        do values.push(this.expression()); while (this.accept(","));
+      }
+      this.accept(";");
+      return { type: "return", values };
+    }
     if (this.accept("while")) {
       this.expect("(");
       const condition = this.expression();
