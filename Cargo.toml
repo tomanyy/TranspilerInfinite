@@ -2,6 +2,11 @@
 name = "code_translator"
 version = "0.1.0"
 edition = "2021"
+description = "A small-subset source-to-source code translator with a WebAssembly library."
+license = "GPL-3.0-only"
+readme = "README.md"
+repository = "https://github.com/tomanyy/transpiler-infinite"
+keywords = ["transpiler", "parser", "wasm"]
 
 [lib]
 crate-type = ["cdylib", "rlib"]
