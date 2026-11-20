@@ -1,0 +1,83 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Transpiler Infinite</title>
+  <style>
+    body {
+      background: #3c4652;
+      color: #f1f4f7;
+      font-family: system-ui, sans-serif;
+    }
+
+    textarea {
+      background: #171d25;
+      border: 1px solid #566271;
+      color: #f1f4f7;
+      padding: 8px;
+    }
+
+    select {
+      background: #252d37;
+      color: #f1f4f7;
+    }
+  </style>
+</head>
+<body>
+  <main>
+    <h1>Transpiler Infinite</h1>
+
+    <table id="translator">
+      <tr>
+        <td>
+          <select id="source-language" aria-label="Source language"></select>
+        </td>
+        <td>
+          <select id="target-language" aria-label="Target language"></select>
+        </td>
+      </tr>
+      <tr>
+        <td><textarea id="source" rows="18" cols="52" spellcheck="false" placeholder="Source code" aria-label="Source code"></textarea></td>
+        <td><textarea id="output" rows="18" cols="52" readonly placeholder="Translation" aria-label="Translation" aria-live="polite"></textarea></td>
+      </tr>
+    </table>
+    <p id="status" role="status"></p>
+  </main>
+
+  <script type="module">
+    import { LANGUAGES, translate } from './src/web-translator.js';
+
+    const source = document.querySelector('#source');
+    const from = document.querySelector('#source-language');
+    const to = document.querySelector('#target-language');
+    const output = document.querySelector('#output');
+    const status = document.querySelector('#status');
+    for (const language of LANGUAGES) {
+      for (const select of [from, to]) {
+        const option = document.createElement('option');
+        option.value = language.id;
+        option.textContent = language.label;
+        select.append(option);
+      }
+    }
+    from.value = 'js';
+    to.value = 'python';
+    function runTranslation() {
+      try {
+        output.textContent = translate(source.value, from.value, to.value);
+        status.textContent = '';
+      } catch (error) {
+        output.textContent = '';
+        status.textContent = error instanceof Error ? error.message : String(error);
+      }
+    }
+
+    runTranslation();
+
+    source.addEventListener('input', runTranslation);
+    from.addEventListener('change', runTranslation);
+    to.addEventListener('change', runTranslation);
+  </script>
+</body>
+</html>

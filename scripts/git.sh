@@ -1,0 +1,3 @@
+#!/bin/sh
+project_dir="$(CDPATH= cd -- "$(dirname -- "$0")/.." && pwd)"
+exec git --git-dir="$project_dir/.git-data" --work-tree="$project_dir" "$@"
