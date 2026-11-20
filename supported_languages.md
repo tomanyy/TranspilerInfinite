@@ -10,47 +10,47 @@ These percentages describe this benchmark, not the share of each language's comp
 
 | Language | Passing features | Benchmark score |
 | --- | ---: | ---: |
-| Bash | 6/12 | $\color{#cf222e}{\text{50\%}}$ █████░░░░░ |
-| C# | 9/13 | $\color{#bf8700}{\text{69\%}}$ ██████▉░░░ |
-| C++ | 9/13 | $\color{#bf8700}{\text{69\%}}$ ██████▉░░░ |
-| Dart | 11/13 | $\color{#2da44e}{\text{85\%}}$ ████████▌░ |
-| Go | 9/13 | $\color{#bf8700}{\text{69\%}}$ ██████▉░░░ |
-| Java | 9/13 | $\color{#bf8700}{\text{69\%}}$ ██████▉░░░ |
-| JavaScript | 11/13 | $\color{#2da44e}{\text{85\%}}$ ████████▌░ |
-| Kotlin | 9/13 | $\color{#bf8700}{\text{69\%}}$ ██████▉░░░ |
-| Lua | 11/13 | $\color{#2da44e}{\text{85\%}}$ ████████▌░ |
-| PHP | 10/13 | $\color{#bf8700}{\text{77\%}}$ ███████▋░░ |
-| Perl | 5/12 | $\color{#cf222e}{\text{42\%}}$ ████▏░░░░░ |
-| Python | 10/12 | $\color{#2da44e}{\text{83\%}}$ ████████▎░ |
-| R | 9/12 | $\color{#bf8700}{\text{75\%}}$ ███████▌░░ |
-| Ruby | 9/12 | $\color{#bf8700}{\text{75\%}}$ ███████▌░░ |
-| Rust | 9/13 | $\color{#bf8700}{\text{69\%}}$ ██████▉░░░ |
-| Scala | 8/13 | $\color{#bf8700}{\text{62\%}}$ ██████▏░░░ |
-| Swift | 10/13 | $\color{#bf8700}{\text{77\%}}$ ███████▋░░ |
-| TypeScript | 10/13 | $\color{#bf8700}{\text{77\%}}$ ███████▋░░ |
+| Bash | 6/12 | ![Progress](https://geps.dev/progress/50?label=50%25&min=0&max=100&barColor=%23cf222e) |
+| C# | 9/13 | ![Progress](https://geps.dev/progress/69?label=69%25&min=0&max=100&barColor=%23bf8700) |
+| C++ | 9/13 | ![Progress](https://geps.dev/progress/69?label=69%25&min=0&max=100&barColor=%23bf8700) |
+| Dart | 11/13 | ![Progress](https://geps.dev/progress/85?label=85%25&min=0&max=100&barColor=%232da44e) |
+| Go | 9/13 | ![Progress](https://geps.dev/progress/69?label=69%25&min=0&max=100&barColor=%23bf8700) |
+| Java | 9/13 | ![Progress](https://geps.dev/progress/69?label=69%25&min=0&max=100&barColor=%23bf8700) |
+| JavaScript | 11/13 | ![Progress](https://geps.dev/progress/85?label=85%25&min=0&max=100&barColor=%232da44e) |
+| Kotlin | 9/13 | ![Progress](https://geps.dev/progress/69?label=69%25&min=0&max=100&barColor=%23bf8700) |
+| Lua | 11/13 | ![Progress](https://geps.dev/progress/85?label=85%25&min=0&max=100&barColor=%232da44e) |
+| PHP | 10/13 | ![Progress](https://geps.dev/progress/77?label=77%25&min=0&max=100&barColor=%23bf8700) |
+| Perl | 5/12 | ![Progress](https://geps.dev/progress/42?label=42%25&min=0&max=100&barColor=%23cf222e) |
+| Python | 10/12 | ![Progress](https://geps.dev/progress/83?label=83%25&min=0&max=100&barColor=%232da44e) |
+| R | 9/12 | ![Progress](https://geps.dev/progress/75?label=75%25&min=0&max=100&barColor=%23bf8700) |
+| Ruby | 9/12 | ![Progress](https://geps.dev/progress/75?label=75%25&min=0&max=100&barColor=%23bf8700) |
+| Rust | 9/13 | ![Progress](https://geps.dev/progress/69?label=69%25&min=0&max=100&barColor=%23bf8700) |
+| Scala | 8/13 | ![Progress](https://geps.dev/progress/62?label=62%25&min=0&max=100&barColor=%23bf8700) |
+| Swift | 10/13 | ![Progress](https://geps.dev/progress/77?label=77%25&min=0&max=100&barColor=%23bf8700) |
+| TypeScript | 10/13 | ![Progress](https://geps.dev/progress/77?label=77%25&min=0&max=100&barColor=%23bf8700) |
 
 ### Features that fail this benchmark
 
 | Language | Features |
 | --- | --- |
-| Bash | Arithmetic output, sequence and keyed literals, indexed access, functions, for-each loops |
-| C# | Sequence and keyed literals, functions, for-each loops |
-| C++ | Sequence and keyed literals, functions, for-each loops |
-| Dart | Functions, for-each loops |
-| Go | Sequence and keyed literals, functions, for-each loops |
-| Java | Sequence and keyed literals, functions, for-each loops |
-| JavaScript | Functions, for-each loops |
-| Kotlin | Sequence and keyed literals, functions, for-each loops |
-| Lua | Functions and for-each loops in Rust output |
-| PHP | Keyed literals, functions, for-each loops |
-| Perl | Boolean conditions, if/else, while, sequences and keyed literals, functions, for-each loops |
-| Python | Functions, for-each loops |
-| R | Keyed literals, functions, for-each loops |
-| Ruby | Keyed literals, functions, for-each loops |
-| Rust | Sequence and keyed literals, functions, for-each loops |
-| Scala | Sequences, keyed literals, indexed access, functions, for-each loops |
-| Swift | Keyed literals, functions, for-each loops |
-| TypeScript | Sequences, functions, for-each loops |
+| Bash | arithmetic, sequence literals, keyed literals, indexed reads/writes, function definitions and returns, for-each loops |
+| C# | sequence literals, keyed literals, function definitions and returns, for-each loops |
+| C++ | sequence literals, keyed literals, function definitions and returns, for-each loops |
+| Dart | function definitions and returns, for-each loops |
+| Go | sequence literals, keyed literals, function definitions and returns, for-each loops |
+| Java | sequence literals, keyed literals, function definitions and returns, for-each loops |
+| JavaScript | function definitions and returns, for-each loops |
+| Kotlin | sequence literals, keyed literals, function definitions and returns, for-each loops |
+| Lua | function definitions and returns, for-each loops |
+| PHP | keyed literals, function definitions and returns, for-each loops |
+| Perl | boolean conditions, if/else, while loops, sequence literals, keyed literals, function definitions and returns, for-each loops |
+| Python | function definitions and returns, for-each loops |
+| R | keyed literals, function definitions and returns, for-each loops |
+| Ruby | keyed literals, function definitions and returns, for-each loops |
+| Rust | sequence literals, keyed literals, function definitions and returns, for-each loops |
+| Scala | sequence literals, keyed literals, indexed reads/writes, function definitions and returns, for-each loops |
+| Swift | keyed literals, function definitions and returns, for-each loops |
+| TypeScript | sequence literals, function definitions and returns, for-each loops |
 
 ## Native target syntax checks
 

@@ -8,6 +8,13 @@ struct Case {
     source: String,
 }
 
+struct LanguageResult {
+    name: String,
+    passed: usize,
+    total: usize,
+    failures: Vec<String>,
+}
+
 fn decode_hex(input: &str) -> Result<String, String> {
     if input.len() % 2 != 0 {
         return Err("invalid sample encoding".into());
@@ -138,6 +145,92 @@ fn feature_label(feature: &str) -> &str {
     }
 }
 
+fn language_label(language: &str) -> &str {
+    match language {
+        "bash" => "Bash",
+        "csharp" => "C#",
+        "cpp" => "C++",
+        "dart" => "Dart",
+        "go" => "Go",
+        "java" => "Java",
+        "js" => "JavaScript",
+        "kotlin" => "Kotlin",
+        "lua" => "Lua",
+        "php" => "PHP",
+        "perl" => "Perl",
+        "python" => "Python",
+        "r" => "R",
+        "ruby" => "Ruby",
+        "rust" => "Rust",
+        "scala" => "Scala",
+        "swift" => "Swift",
+        "typescript" => "TypeScript",
+        other => other,
+    }
+}
+
+fn progress_badge(percent: usize) -> String {
+    let color = if percent >= 80 { "%232da44e" } else if percent >= 60 { "%23bf8700" } else { "%23cf222e" };
+    format!(
+        "![Progress](https://geps.dev/progress/{percent}?label={percent}%25&min=0&max=100&barColor={color})"
+    )
+}
+
+fn replace_table(doc: &str, table_start: &str, next_section: &str, replacement: &str) -> Result<String, String> {
+    let start = doc.find(table_start).ok_or_else(|| format!("could not find '{table_start}' in supported_languages.md"))?;
+    let end = doc[start..]
+        .find(next_section)
+        .map(|offset| start + offset)
+        .ok_or_else(|| format!("could not find '{next_section}' in supported_languages.md"))?;
+    let mut updated = String::with_capacity(doc.len() + replacement.len());
+    updated.push_str(&doc[..start]);
+    updated.push_str(replacement);
+    updated.push_str("\n\n");
+    updated.push_str(&doc[end..]);
+    Ok(updated)
+}
+
+fn update_supported_languages(results: &[LanguageResult]) -> Result<(), String> {
+    let mut score_table = String::from("| Language | Passing features | Benchmark score |\n| --- | ---: | ---: |\n");
+    let mut failure_table = String::from("| Language | Features |\n| --- | --- |\n");
+    for result in results {
+        let percent = (result.passed * 100 + result.total / 2) / result.total;
+        score_table.push_str(&format!(
+            "| {} | {}/{} | {} |\n",
+            result.name,
+            result.passed,
+            result.total,
+            progress_badge(percent)
+        ));
+        let failed_features = if result.failures.is_empty() {
+            "None in this benchmark".to_owned()
+        } else {
+            result.failures.join(", ")
+        };
+        failure_table.push_str(&format!("| {} | {} |\n", result.name, failed_features));
+    }
+
+    let doc_path = std::env::current_dir()
+        .map_err(|error| error.to_string())?
+        .join("supported_languages.md");
+    let doc = std::fs::read_to_string(&doc_path)
+        .map_err(|error| format!("could not read supported_languages.md: {error}"))?;
+    let doc = replace_table(
+        &doc,
+        "| Language | Passing features | Benchmark score |",
+        "### Features that fail this benchmark",
+        score_table.trim_end(),
+    )?;
+    let doc = replace_table(
+        &doc,
+        "| Language | Features |",
+        "## Native target syntax checks",
+        failure_table.trim_end(),
+    )?;
+    std::fs::write(&doc_path, doc)
+        .map_err(|error| format!("could not update supported_languages.md: {error}"))
+}
+
 fn main() {
     let cases = match load_cases() {
         Ok(cases) => cases,
@@ -163,6 +256,7 @@ fn main() {
     languages.sort_unstable();
     languages.dedup();
 
+    let mut report = Vec::new();
     for language in languages {
         let scalar_output = outputs
             .get(&(language, "scalar"))
@@ -171,7 +265,7 @@ fn main() {
             .unwrap_or("");
         let mut passed = 0;
         let mut total = 0;
-        println!("{}", language);
+        let mut failures = Vec::new();
         for case in cases.iter().filter(|case| case.language == language) {
             total += 1;
             let result = outputs.get(&(language, case.feature.as_str())).expect("loaded case");
@@ -185,10 +279,22 @@ fn main() {
             if ok {
                 passed += 1;
             } else {
-                println!("  - {}: {}", feature_label(&case.feature), detail);
+                failures.push(feature_label(&case.feature).to_owned());
+                println!("{}: {}: {}", language_label(language), feature_label(&case.feature), detail);
             }
         }
         let percent = (passed * 100 + total / 2) / total;
-        println!("  {passed}/{total}\t{percent}%");
+        println!("{}\t{passed}/{total}\t{percent}%\t{}", language_label(language), progress_badge(percent));
+        report.push(LanguageResult {
+            name: language_label(language).to_owned(),
+            passed,
+            total,
+            failures,
+        });
+    }
+    report.sort_by(|left, right| left.name.cmp(&right.name));
+    if let Err(error) = update_supported_languages(&report) {
+        eprintln!("Could not update progress badges: {error}");
+        std::process::exit(1);
     }
 }
