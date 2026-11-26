@@ -1,6 +1,6 @@
 # Transpiler Infinite
 
-Universal code-to-code transpiler for translating between (almot) any programming languages.
+Universal code-to-code transpiler for translating between (almost) any programming languages.
 
 **Website:** [Transpiler Infinite](https://tomanyy.github.io/transpiler-infinite/)
 
