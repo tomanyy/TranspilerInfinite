@@ -2,7 +2,7 @@
 name = "transpiler-infinite"
 version = "0.1.0"
 edition = "2024"
-description = "Universal code-to-code transpiler for translating between (almot) any programming languages."
+description = "Universal code-to-code transpiler for translating between (almost) any programming languages."
 license = "GPL-3.0-only"
 readme = "README.md"
 repository = "https://github.com/tomanyy/transpiler-infinite"
